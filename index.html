@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CS / AI / DS / EE / Robotics · 找到你真正适合的方向</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="quiz_v9_13_fixed_1.css?v=20260315ab">
+</head>
+<body>
+
+<!-- ════════════════════ INTRO ════════════════════ -->
+<div id="intro">
+  <!-- ── NAVBAR ── -->
+  <nav id="mainNav" class="main-nav">
+    <div class="nav-inner">
+      <div class="nav-brand" onclick="showPage('home')" style="cursor:pointer;">
+        <span class="nav-dot"></span>
+        Direction Finder
+      </div>
+      <div class="nav-links">
+        <a onclick="showPage('home');return false;" class="nav-link">首页</a>
+        <a onclick="showPage('directions');return false;" class="nav-link">方向图谱</a>
+        <a onclick="showPage('careers');return false;" class="nav-link">职业地图</a>
+        <a onclick="showPage('history');return false;" class="nav-link">历史结果</a>
+      </div>
+      <div class="nav-right">
+        <!-- Logged-in state -->
+        <div id="navLoggedIn" style="display:none;" class="nav-user-row">
+          <span id="navUserBadge" class="nav-user-badge">✓ 已兑换</span>
+          <button class="nav-start-btn" onclick="startQuiz()">开始测试 →</button>
+          <button id="navRevokeBtn" class="nav-redeem-btn" onclick="revokeRedeem()" style="margin-left:4px;font-size:10px;padding:6px 10px;">退出兑换</button>
+        </div>
+        <!-- Logged-out state -->
+        <div id="navLoggedOut" class="nav-user-row">
+          <button class="nav-redeem-btn" onclick="openRedeemOverlay()">兑换码 / 登录</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── HERO ── -->
+  <div class="landing-hero" id="landingHero">
+    <div class="landing-hero-inner">
+      <div class="hero-eyebrow">CS · AI · DS · ECE · Robotics · OR &nbsp;|&nbsp; 方向测评</div>
+      <h1 class="hero-title">找到你<em>真正</em><br>适合的那条路</h1>
+      <p class="hero-sub">不问 GPA，不问背景，不问别人觉得哪个「热」。<br>只问你<strong style="color:var(--text)">更在乎什么</strong>——偏好和直觉，才是最诚实的指南针。</p>
+      <div class="hero-actions">
+        <button class="hero-start-btn" id="heroStartBtn" onclick="startQuiz()">
+          开始测试
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <a class="hero-explore-btn" onclick="showPage('directions')">浏览方向图谱 →</a>
+      </div>
+      <div class="hero-meta">60–85 题 · 约 12–15 分钟 · 四阶段自适应 · 结果即时生成</div>
+      <div class="hero-proofline">
+        <span class="hero-proof-chip">先定 1–3 个主族</span>
+        <span class="hero-proof-chip">再收敛到 1–2 个方向</span>
+        <span class="hero-proof-chip">最后落到具体岗位</span>
+      </div>
+    </div>
+    <div class="hero-showcase">
+      <section class="hero-showcase-main">
+        <div class="showcase-kicker">测评怎么进行</div>
+        <h2 class="showcase-title">先帮你缩小范围，再告诉你该往哪走。</h2>
+        <p class="showcase-copy">你不用自己在一百多个方向里硬选。系统会先判断你更像哪类学习者，再一步步缩小到真正适合长期投入的方向。</p>
+        <div class="showcase-flow">
+          <article class="showcase-step-card">
+            <div class="showcase-step-num">01</div>
+            <div class="showcase-step-name">先看你更像哪类人</div>
+            <div class="showcase-step-copy">从做事偏好、问题感和成就感出发，不先拿术语给你增加门槛。</div>
+          </article>
+          <article class="showcase-step-card">
+            <div class="showcase-step-num">02</div>
+            <div class="showcase-step-name">再看你偏哪条专业线</div>
+            <div class="showcase-step-copy">AI、CS、EE、Robotics 等不会全部展开，只保留和你最相关的 1–3 条线。</div>
+          </article>
+          <article class="showcase-step-card">
+            <div class="showcase-step-num">03</div>
+            <div class="showcase-step-name">继续缩到具体方向</div>
+            <div class="showcase-step-copy">从大类继续缩到具体研究问题，帮你看清真正值得长期投入的分支。</div>
+          </article>
+          <article class="showcase-step-card">
+            <div class="showcase-step-num">04</div>
+            <div class="showcase-step-name">最后落到职业出口</div>
+            <div class="showcase-step-copy">结合你的工作偏好和性格，把方向落到更适合长期发展的岗位上。</div>
+          </article>
+        </div>
+      </section>
+      <aside class="hero-showcase-side">
+        <article class="hero-side-card hero-side-card-prime">
+          <div class="hero-side-label">你最后会拿到什么</div>
+          <div class="hero-side-title">不是一句“你适合什么”就结束。</div>
+          <div class="hero-side-copy">你会看到主方向、细分分支、典型项目、职业出口，以及下一步最值得投入的行动建议。</div>
+          <div class="hero-side-stack">
+            <div class="hero-mini-pill">主方向示例：语言智能</div>
+            <div class="hero-mini-pill">细分方向示例：RAG / 检索 / 评测</div>
+            <div class="hero-mini-pill">职业出口示例：LLM Engineer / Search Engineer</div>
+          </div>
+        </article>
+        <article class="hero-side-card hero-side-card-metrics">
+          <div class="hero-side-label">更适合哪些同学来做</div>
+          <div class="hero-metric-grid">
+            <div class="hero-metric-card">
+              <div class="hero-metric-value">高中</div>
+              <div class="hero-metric-label">想先找清主方向</div>
+            </div>
+            <div class="hero-metric-card">
+              <div class="hero-metric-value">大一</div>
+              <div class="hero-metric-label">想提前看细分路线</div>
+            </div>
+            <div class="hero-metric-card">
+              <div class="hero-metric-value">保研</div>
+              <div class="hero-metric-label">想确认研究方向是否适合</div>
+            </div>
+            <div class="hero-metric-card">
+              <div class="hero-metric-value">求职</div>
+              <div class="hero-metric-label">想看具体职业出口</div>
+            </div>
+          </div>
+        </article>
+      </aside>
+    </div>
+    <div class="hero-scroll-hint">↓</div>
+  </div>
+
+<!-- Stats strip -->
+<div class="hero-stats-strip">
+  <div class="hs-item">
+    <div class="hs-n">7</div>
+    <div class="hs-l">专业领域</div>
+    <div class="hs-s">AI · CS · ECE · DS · Robotics · OR · CE</div>
+  </div>
+  <div class="hs-item">
+    <div class="hs-n">104</div>
+    <div class="hs-l">研究方向</div>
+    <div class="hs-s">从理论到工程，全面覆盖</div>
+  </div>
+  <div class="hs-item">
+    <div class="hs-n">41</div>
+    <div class="hs-l">职业路径</div>
+    <div class="hs-s">含真实薪资和工作场景</div>
+  </div>
+  <div class="hs-item">
+    <div class="hs-n">~12</div>
+    <div class="hs-l">分钟完成</div>
+    <div class="hs-s">四阶段自适应问卷</div>
+  </div>
+</div>
+
+  <!-- ── FEATURES ── -->
+  <div class="landing-section">
+    <div class="section-label">核心优势</div>
+    <div class="section-title">为什么选择这个测评？</div>
+    <div class="section-sub">不只是问卷，是一套完整的方向发现系统。</div>
+    <div class="feat-grid">
+      <div class="feat-card">
+        <div class="feat-icon">🎯</div>
+        <div class="feat-title">7 大领域全覆盖</div>
+        <div class="feat-desc">AI/ML · CS · ECE · DS · Robotics · Math/OR · CE，104 个细分方向，系统根据你的答案自动激活最相关的专项题目</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🔄</div>
+        <div class="feat-title">四阶段自适应问卷</div>
+        <div class="feat-desc">锚定 → 领域专项 → 深度细分 → 职业匹配，每个阶段的题目由上一阶段的得分动态决定，不同人看到完全不同的题目组合</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📊</div>
+        <div class="feat-title">8 维度结果报告</div>
+        <div class="feat-desc">思维方式 · 专业推荐 · 方向分布图谱 · 研究方向详解 · 职业路径 · 具体岗位匹配，每个结论都有逻辑依据</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">💼</div>
+        <div class="feat-title">41 条真实职业路径</div>
+        <div class="feat-desc">每个职业路径包含：中美薪资参考、日常工作场景举例、下一步行动建议，并在卡片内附上对应查询来源</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ── WHY SECTION ── -->
+  <div class="landing-section why-section">
+    <div class="section-label">为什么需要这个测评</div>
+    <div class="section-title">兴趣，才是人生真正的导师</div>
+    <div class="section-sub">选方向不是选热度，而是找到那条让你愿意十年如一日钻进去的路。</div>
+
+    <div class="why-grid">
+
+      <!-- Card A: top-left ──────────────────────── -->
+      <div class="why-card">
+        <div class="why-visual">
+          <svg viewBox="0 0 360 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="360" height="200" fill="rgba(124,109,250,.04)" rx="4"/>
+            <!-- Glow -->
+            <ellipse cx="180" cy="100" rx="140" ry="80" fill="rgba(124,109,250,.06)"/>
+            <!-- Road from bottom center -->
+            <path d="M180 190 L180 120" stroke="#2a2a3e" stroke-width="3" stroke-linecap="round"/>
+            <!-- Branch left = interest -->
+            <path d="M180 120 L80 40" stroke="#a78bfa" stroke-width="2.5" stroke-linecap="round"/>
+            <!-- Branch right = trend (dashed) -->
+            <path d="M180 120 L280 40" stroke="#3d3d5a" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="8 5"/>
+            <!-- Left endpoint: interest circle -->
+            <circle cx="80" cy="34" r="20" fill="rgba(124,109,250,.18)" stroke="#a78bfa" stroke-width="1.5"/>
+            <text x="80" y="38" text-anchor="middle" font-size="15" fill="#a78bfa">♥</text>
+            <text x="80" y="64" text-anchor="middle" font-size="11" fill="#a78bfa" font-family="'DM Mono',monospace" font-weight="600">兴趣方向</text>
+            <!-- Right endpoint: trend circle -->
+            <circle cx="280" cy="34" r="20" fill="rgba(255,255,255,.03)" stroke="#3d3d5a" stroke-width="1.5"/>
+            <text x="280" y="38" text-anchor="middle" font-size="14" fill="#3d3d5a">📈</text>
+            <text x="280" y="64" text-anchor="middle" font-size="11" fill="#3d3d5a" font-family="'DM Mono',monospace">追热度</text>
+            <!-- Person dot -->
+            <circle cx="180" cy="186" r="9" fill="#a78bfa"/>
+            <!-- Fork label -->
+            <text x="180" y="112" text-anchor="middle" font-size="9" fill="#55557a" font-family="'DM Mono',monospace">凭热度选的路，越走越难受</text>
+          </svg>
+        </div>
+        <div class="why-text">
+          <div class="why-tag">核心理念</div>
+          <div class="why-title">热度 ≠ 适合你</div>
+          <div class="why-body">「AI 很热就学 AI」「就业好就学 CS」——但如果你对系统底层毫无兴趣，即便进了大厂也会感到空洞。<br><br>真正能走远的方向，是那条你在<strong>没有外部压力时</strong>也愿意钻进去的路。这个测评帮你找到它，不是根据 GPA，而是根据你真正在乎什么。</div>
+        </div>
+      </div>
+
+      <!-- Card B: top-right ──────────────────────── -->
+      <div class="why-card">
+        <div class="why-visual">
+          <svg viewBox="0 0 360 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="360" height="200" fill="rgba(52,211,153,.03)" rx="4"/>
+            <!-- 7 domain bubbles scattered -->
+            <!-- AI - largest -->
+            <circle cx="88"  cy="105" r="52" fill="rgba(167,139,250,.1)" stroke="rgba(167,139,250,.35)" stroke-width="1.5"/>
+            <text x="88"  y="100" text-anchor="middle" font-size="11" fill="#a78bfa" font-weight="700" font-family="'DM Mono',monospace">AI / ML</text>
+            <text x="88"  y="115" text-anchor="middle" font-size="9.5" fill="#7272a0" font-family="'DM Mono',monospace">42 方向</text>
+            <!-- CS -->
+            <circle cx="192" cy="72"  r="38" fill="rgba(52,211,153,.08)"  stroke="rgba(52,211,153,.3)"  stroke-width="1.5"/>
+            <text x="192" y="68"  text-anchor="middle" font-size="11" fill="#34d399" font-weight="700" font-family="'DM Mono',monospace">CS</text>
+            <text x="192" y="82"  text-anchor="middle" font-size="9.5" fill="#7272a0" font-family="'DM Mono',monospace">20 方向</text>
+            <!-- ECE -->
+            <circle cx="280" cy="85"  r="34" fill="rgba(96,165,250,.08)"  stroke="rgba(96,165,250,.3)"  stroke-width="1.5"/>
+            <text x="280" y="81"  text-anchor="middle" font-size="10" fill="#60a5fa" font-weight="700" font-family="'DM Mono',monospace">ECE</text>
+            <text x="280" y="94"  text-anchor="middle" font-size="9.5" fill="#7272a0" font-family="'DM Mono',monospace">14 方向</text>
+            <!-- DS -->
+            <circle cx="210" cy="148" r="30" fill="rgba(244,114,182,.08)" stroke="rgba(244,114,182,.3)" stroke-width="1.5"/>
+            <text x="210" y="144" text-anchor="middle" font-size="10" fill="#f472b6" font-weight="700" font-family="'DM Mono',monospace">DS</text>
+            <text x="210" y="157" text-anchor="middle" font-size="9.5" fill="#7272a0" font-family="'DM Mono',monospace">12 方向</text>
+            <!-- Robotics -->
+            <circle cx="298" cy="148" r="26" fill="rgba(251,146,60,.08)"  stroke="rgba(251,146,60,.3)"  stroke-width="1.5"/>
+            <text x="298" y="144" text-anchor="middle" font-size="9"  fill="#fb923c" font-weight="700" font-family="'DM Mono',monospace">Robotics</text>
+            <text x="298" y="157" text-anchor="middle" font-size="9.5" fill="#7272a0" font-family="'DM Mono',monospace">11 方向</text>
+            <!-- OR/Math small -->
+            <circle cx="155" cy="170" r="20" fill="rgba(74,222,128,.07)"  stroke="rgba(74,222,128,.25)" stroke-width="1"/>
+            <text x="155" y="167" text-anchor="middle" font-size="8"  fill="#4ade80" font-family="'DM Mono',monospace">Math</text>
+            <text x="155" y="178" text-anchor="middle" font-size="8"  fill="#7272a0" font-family="'DM Mono',monospace">13</text>
+            <!-- CE small -->
+            <circle cx="52"  cy="170" r="18" fill="rgba(129,140,248,.07)" stroke="rgba(129,140,248,.25)" stroke-width="1"/>
+            <text x="52"  y="167" text-anchor="middle" font-size="8"  fill="#818cf8" font-family="'DM Mono',monospace">CE</text>
+            <text x="52"  y="178" text-anchor="middle" font-size="8"  fill="#7272a0" font-family="'DM Mono',monospace">12</text>
+          </svg>
+        </div>
+        <div class="why-text">
+          <div class="why-tag">覆盖范围</div>
+          <div class="why-title">104 个方向，没人能全部了解</div>
+          <div class="why-body">从 LLM 到 SLAM，从芯片设计到因果推断——每条路的日常工作、薪资天花板、学习路径都完全不同。没有人有时间逐一研究。<br><br>这个测评把你的偏好映射到最匹配的方向，帮你<strong>节省数月的信息搜集时间</strong>。</div>
+        </div>
+      </div>
+
+      <!-- Card C: bottom-left ──────────────────────── -->
+      <div class="why-card">
+        <div class="why-visual">
+          <svg viewBox="0 0 360 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="360" height="200" fill="rgba(251,146,60,.03)" rx="4"/>
+            <!-- Central point -->
+            <circle cx="180" cy="130" r="10" fill="#fb923c"/>
+            <!-- Three branches upward to goals -->
+            <!-- Left: 保研/考研 -->
+            <line x1="180" y1="120" x2="70"  y2="52" stroke="rgba(251,146,60,.4)" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="70"  cy="44" r="22" fill="rgba(251,146,60,.12)" stroke="rgba(251,146,60,.35)" stroke-width="1.5"/>
+            <text x="70"  y="40" text-anchor="middle" font-size="16">🎓</text>
+            <text x="70"  y="76" text-anchor="middle" font-size="11" fill="#fb923c" font-family="'DM Mono',monospace">保研 / 考研</text>
+            <!-- Center: 出国 -->
+            <line x1="180" y1="120" x2="180" y2="52" stroke="rgba(251,146,60,.4)" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="180" cy="44" r="22" fill="rgba(251,146,60,.12)" stroke="rgba(251,146,60,.35)" stroke-width="1.5"/>
+            <text x="180" y="40" text-anchor="middle" font-size="16">✈️</text>
+            <text x="180" y="76" text-anchor="middle" font-size="11" fill="#fb923c" font-family="'DM Mono',monospace">出国深造</text>
+            <!-- Right: 就业 -->
+            <line x1="180" y1="120" x2="290" y2="52" stroke="rgba(251,146,60,.4)" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="290" cy="44" r="22" fill="rgba(251,146,60,.12)" stroke="rgba(251,146,60,.35)" stroke-width="1.5"/>
+            <text x="290" y="40" text-anchor="middle" font-size="16">💼</text>
+            <text x="290" y="76" text-anchor="middle" font-size="11" fill="#fb923c" font-family="'DM Mono',monospace">就业入行</text>
+            <!-- Bottom label -->
+            <text x="180" y="155" text-anchor="middle" font-size="11" fill="#7272a0" font-family="'DM Mono',monospace">同一个兴趣，不同目标，不同策略</text>
+            <text x="180" y="170" text-anchor="middle" font-size="10.5" fill="#55557a" font-family="'DM Mono',monospace">测评结果包含科研路线 / 工业界路线建议</text>
+          </svg>
+        </div>
+        <div class="why-text">
+          <div class="why-tag">适用场景</div>
+          <div class="why-title">无论保研、出国还是就业</div>
+          <div class="why-body">不同目标需要不同的方向选择策略。保研看科研积累，出国看导师匹配，就业看市场需求——同一个兴趣，在不同目标下要做不同的选择。<br><br>测评结果包含针对<strong>科研路线 / 工业界路线</strong>的具体建议，以及每条职业路径的真实薪资参考。</div>
+        </div>
+      </div>
+
+      <!-- Card D: bottom-right ──────────────────────── -->
+      <div class="why-card">
+        <div class="why-visual">
+          <svg viewBox="0 0 360 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="360" height="200" fill="rgba(124,109,250,.03)" rx="4"/>
+            <!-- Compass rose -->
+            <circle cx="110" cy="100" r="58" fill="rgba(124,109,250,.06)" stroke="rgba(124,109,250,.2)" stroke-width="1.5"/>
+            <circle cx="110" cy="100" r="38" fill="rgba(124,109,250,.06)" stroke="rgba(124,109,250,.15)" stroke-width="1"/>
+            <circle cx="110" cy="100" r="5"  fill="#a78bfa"/>
+            <!-- Compass needles -->
+            <path d="M110 100 L110 50" stroke="#a78bfa" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M110 100 L110 150" stroke="#3d3d5a" stroke-width="2" stroke-linecap="round"/>
+            <path d="M110 100 L60 100"  stroke="#3d3d5a" stroke-width="2" stroke-linecap="round"/>
+            <path d="M110 100 L160 100" stroke="#3d3d5a" stroke-width="2" stroke-linecap="round"/>
+            <polygon points="110,42 106,58 110,54 114,58" fill="#a78bfa"/>
+            <text x="110" y="35" text-anchor="middle" font-size="10" fill="#a78bfa" font-family="'DM Mono',monospace">你的方向</text>
+            <!-- Job title chips on the right -->
+            <rect x="198" y="32"  width="148" height="24" rx="6" fill="rgba(124,109,250,.12)" stroke="rgba(124,109,250,.3)" stroke-width="1"/>
+            <text x="272" y="48" text-anchor="middle" font-size="10" fill="#a78bfa" font-family="'DM Mono',monospace">LLM Research Scientist</text>
+            <rect x="198" y="64"  width="148" height="24" rx="6" fill="rgba(52,211,153,.1)"  stroke="rgba(52,211,153,.25)"  stroke-width="1"/>
+            <text x="272" y="80" text-anchor="middle" font-size="10" fill="#34d399" font-family="'DM Mono',monospace">AV Perception Engineer</text>
+            <rect x="198" y="96"  width="148" height="24" rx="6" fill="rgba(244,114,182,.1)" stroke="rgba(244,114,182,.25)" stroke-width="1"/>
+            <text x="272" y="112" text-anchor="middle" font-size="10" fill="#f472b6" font-family="'DM Mono',monospace">Causal Inference Sci.</text>
+            <rect x="198" y="128" width="148" height="24" rx="6" fill="rgba(251,146,60,.1)"  stroke="rgba(251,146,60,.25)"  stroke-width="1"/>
+            <text x="272" y="144" text-anchor="middle" font-size="10" fill="#fb923c" font-family="'DM Mono',monospace">NPU Architect</text>
+            <rect x="198" y="160" width="148" height="24" rx="6" fill="rgba(129,140,248,.1)" stroke="rgba(129,140,248,.25)" stroke-width="1"/>
+            <text x="272" y="176" text-anchor="middle" font-size="10" fill="#818cf8" font-family="'DM Mono',monospace">OR / Quant Scientist</text>
+          </svg>
+        </div>
+        <div class="why-text">
+          <div class="why-tag">迷茫时</div>
+          <div class="why-title">看见具体的终点</div>
+          <div class="why-body">科研进行到一半不知道往哪发力？课程学完不知道能做什么？<br><br>这个测评告诉你：你的兴趣对应哪些<strong>具体职位</strong>——不是泛泛的「AI 工程师」，而是「LLM Research Scientist」「Causal Inference Scientist」这样的精确描述，含真实工作日常和薪资范围。<br><br>有了具体目标，每一天的学习才有方向感。</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── HOW IT WORKS ── -->
+  <div class="landing-section">
+    <div class="section-label">你会拿到什么</div>
+    <div class="section-title">结果不只是一句“你适合什么”</div>
+    <div class="section-sub">做完后，你会直接看到适合长期投入的主方向、细分分支、职业出口和下一步建议。</div>
+    <div class="how-steps">
+      <div class="how-step">
+        <div class="how-num">01</div>
+        <div class="how-content">
+          <div class="how-h">主方向判断</div>
+          <div class="how-d">先告诉你更适合往哪一大类走，而不是一开始就把选择拉得太细。</div>
+        </div>
+      </div>
+      <div class="how-step">
+        <div class="how-num">02</div>
+        <div class="how-content">
+          <div class="how-h">细分方向图谱</div>
+          <div class="how-d">继续看到主方向里的细分分支，知道自己更适合深入哪类研究问题。</div>
+        </div>
+      </div>
+      <div class="how-step">
+        <div class="how-num">03</div>
+        <div class="how-content">
+          <div class="how-h">职业出口匹配</div>
+          <div class="how-d">不只停在专业名词，还会往下对应到更接近真实世界的岗位和工作场景。</div>
+        </div>
+      </div>
+      <div class="how-step">
+        <div class="how-num">04</div>
+        <div class="how-content">
+          <div class="how-h">下一步行动建议</div>
+          <div class="how-d">你还会看到接下来更值得投入的课程、项目和探索重点，不会只停在结果页。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DOMAINS PREVIEW ── -->
+  <div class="landing-section">
+    <div class="domains-title">覆盖方向</div>
+    <div class="domains-flex">
+      <div class="domain-pill ai-pill">AI / ML<span>42 方向</span></div>
+      <div class="domain-pill cs-pill">CS<span>20 方向</span></div>
+      <div class="domain-pill ee-pill">ECE / EE<span>14 方向</span></div>
+      <div class="domain-pill ds-pill">DS / Stats<span>12 方向</span></div>
+      <div class="domain-pill rb-pill">Robotics<span>11 方向</span></div>
+      <div class="domain-pill or-pill">Math / OR<span>13 方向</span></div>
+      <div class="domain-pill ce-pill">CE<span>12 方向</span></div>
+    </div>
+  </div>
+
+  <!-- ── CTA ── -->
+  <div class="landing-section">
+    <div class="cta-band">
+      <div class="cta-eyebrow">开始你的方向发现之旅</div>
+      <div class="cta-title">12 分钟，找到属于你的那条路</div>
+      <div class="cta-sub">保研、考研、出国、就业——无论哪条路，先搞清楚方向，再做决策。</div>
+      <button class="hero-start-btn cta-btn" onclick="startQuiz()">
+        立即开始测试
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="cta-links">
+        <span onclick="showPage('directions')" class="cta-link">浏览 104 个方向 →</span>
+        <span onclick="showPage('careers')" class="cta-link">查看 41 条职业路径 →</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ QUIZ ════════════════════ -->
+<div id="quiz">
+  <div class="quiz-header">
+    <div class="quiz-header-inner">
+      <div class="progress-meta">
+        <button class="quiz-home-btn" id="quizHomeBtn" onclick="openQuitDialog()">⌂ 首页</button>
+        <div class="progress-main">
+        <span id="phasePill" class="phase-pill">基础锚定</span>
+          <span id="progressText" class="progress-count">1 / 20</span>
+        </div>
+        <span id="progressPct" class="progress-pct">本阶段 0%</span>
+      </div>
+      <div class="progress-bars">
+        <div class="progress-bar progress-bar-main"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+        <div class="progress-bar progress-bar-total"><div class="progress-fill" id="progressFillTotal" style="width:0%;background:var(--muted);"></div></div>
+      </div>
+      <div class="progress-total-text" id="progressTotalText">总流程 0%</div>
+    </div>
+  </div>
+  <div id="qArea"></div>
+</div>
+
+<!-- ════════════════════ RESULTS ════════════════════ -->
+<div id="results">
+  <nav class="results-top-nav">
+    <div class="nav-inner">
+      <div class="nav-brand" onclick="showPage('home')" style="cursor:pointer;">
+        <span class="nav-dot"></span>
+        Direction Finder
+      </div>
+      <div class="nav-links">
+        <a onclick="showPage('home');return false;" class="nav-link">首页</a>
+        <a onclick="showPage('directions');return false;" class="nav-link">方向图谱</a>
+        <a onclick="showPage('careers');return false;" class="nav-link">职业地图</a>
+        <a onclick="showPage('history');return false;" class="nav-link">历史结果</a>
+      </div>
+      <div class="nav-right">
+        <div id="resultsNavLoggedIn" style="display:none;" class="nav-user-row">
+          <span id="resultsNavUserBadge" class="nav-user-badge">✓ 已兑换</span>
+          <button class="nav-redeem-btn" onclick="showPage('careers')">浏览职业地图</button>
+          <button class="nav-start-btn" onclick="restart()">重新测试 ↺</button>
+        </div>
+        <div id="resultsNavLoggedOut" class="nav-user-row">
+          <button class="nav-redeem-btn" onclick="openRedeemOverlay()">兑换码 / 登录</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <div class="result-hero">
+    <div class="hero-label" id="resultHeroLabel">方向报告 · 综合分析</div>
+    <div id="heroDomains" class="hero-domain"></div>
+    <div class="hero-direction">你最适合<br><span class="dir-name" id="heroDir">——</span></div>
+    <p class="hero-tagline" id="heroTagline"></p>
+  </div>
+
+  <div class="results-body">
+  <!-- 01 思维画像 -->
+  <div class="r-section">
+    <div class="r-section-hd">
+      <div class="r-num">01</div>
+      <div class="r-title">你是什么样的人</div>
+      <div class="r-divider"></div>
+    </div>
+    <div class="profile-grid" id="profileGrid"></div>
+    <div id="profileExtra" class="profile-extra"></div>
+  </div>
+
+  <!-- 02 专业选择建议 -->
+  <div class="r-section">
+    <div class="r-section-hd">
+      <div class="r-num">02</div>
+      <div class="r-title">专业选择建议</div>
+      <div class="r-divider"></div>
+    </div>
+    <div id="majorGrid" class="major-grid"></div>
+  </div>
+
+  <!-- 03 方向图谱 -->
+  <div class="r-section">
+    <div class="r-section-hd">
+      <div class="r-num">03</div>
+      <div class="r-title">方向分布图谱</div>
+      <div class="r-divider"></div>
+    </div>
+    <div id="clusterGrid" class="cluster-grid"></div>
+    <div id="umbrellaRow" style="margin-top:16px;display:flex;flex-wrap:wrap;gap:8px;"></div>
+    <div style="margin-top:24px;">
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;">具体研究方向得分 Top 12</div>
+      <div class="dir-bars" id="dirBars"></div>
+    </div>
+  </div>
+
+  <!-- 04 研究方向详解 -->
+  <div class="r-section">
+    <div class="r-section-hd">
+      <div class="r-num">04</div>
+      <div class="r-title">研究方向详解</div>
+      <div class="r-divider"></div>
+    </div>
+    <p style="font-size:13px;color:var(--dim);margin-bottom:20px;line-height:1.7;">以下是你得分最高的研究方向的具体介绍——它们是什么、日常研究长什么样、代表性工作是什么。</p>
+    <div id="dirDetailGrid" class="dir-detail-grid"></div>
+  </div>
+
+  <!-- 05 职业路径 -->
+  <div class="r-section">
+    <div class="r-section-hd">
+      <div class="r-num">05</div>
+      <div class="r-title">职业路径匹配</div>
+      <div class="r-divider"></div>
+    </div>
+    <div class="career-grid" id="careerGrid"></div>
+    <div id="careerRoleBox" style="margin-top:20px;"></div>
+  </div>
+
+  <!-- 06 行动建议 -->
+  <div class="r-section">
+    <div class="r-section-hd">
+      <div class="r-num">06</div>
+      <div class="r-title">接下来可以做什么</div>
+      <div class="r-divider"></div>
+    </div>
+    <div class="action-list" id="actionList"></div>
+  </div>
+
+    </div><!-- /results-body -->
+  <div class="restart-row">
+    <button class="restart-btn" onclick="restart()">↺ 重新测试</button>
+  </div>
+</div>
+
+<!-- ── DIRECTIONS PAGE (overlay) ── -->
+<div id="directions-page" class="info-page" style="display:none;">
+  <div class="info-page-toolbar">
+    <div class="info-page-toolbar-inner">
+      <div class="info-page-nav-main">
+        <button class="info-back-btn" onclick="showPage('home')">← 返回</button>
+        <div class="info-page-heading">
+          <div class="info-page-kicker">Direction Explorer</div>
+          <span class="info-page-title">方向图谱</span>
+          <div class="info-page-meta">104 个方向 · 学什么 · 典型项目 · 代表工具 · 参考来源</div>
+        </div>
+      </div>
+      <div class="info-page-actions">
+        <button class="info-top-btn" onclick="scrollInfoPageTop('directions-page')">↑ 顶部</button>
+      </div>
+    </div>
+  </div>
+  <div class="info-page-inner">
+    <div id="dirPageContent"></div>
+  </div>
+</div>
+
+<!-- ── CAREERS PAGE (overlay) ── -->
+<div id="careers-page" class="info-page" style="display:none;">
+  <div class="info-page-toolbar">
+    <div class="info-page-toolbar-inner">
+      <div class="info-page-nav-main">
+        <button class="info-back-btn" onclick="showPage('home')">← 返回</button>
+        <div class="info-page-heading">
+          <div class="info-page-kicker">Career Atlas</div>
+          <span class="info-page-title">职业地图</span>
+          <div class="info-page-meta">41 条路径 · 中美薪资参考 + 每卡来源链接</div>
+        </div>
+      </div>
+      <div class="info-page-actions">
+        <button class="info-top-btn" onclick="scrollInfoPageTop('careers-page')">↑ 顶部</button>
+      </div>
+    </div>
+  </div>
+  <div class="info-page-inner">
+    <div id="careerPageContent"></div>
+  </div>
+</div>
+
+<!-- ── QUIT CONFIRM DIALOG ── -->
+<div id="quitDialog" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:none;align-items:center;justify-content:center;">
+  <div class="quit-card">
+    <div class="quit-title">⚠️ 返回首页</div>
+    <div class="quit-body">当前测试进度将会<strong>丢失</strong>，无法恢复。确定要返回首页吗？</div>
+    <div class="quit-btns">
+      <button class="quit-cancel" onclick="closeQuitDialog()">继续测试</button>
+      <button class="quit-confirm" onclick="confirmQuit()">返回首页</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── DIRECTION DETAIL MODAL ── -->
+<div id="dirModal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;">
+  <div class="dir-modal-card">
+    <div class="dir-modal-hd">
+      <div>
+        <div class="dir-modal-domain" id="dirModalDomain"></div>
+        <div class="dir-modal-name" id="dirModalName"></div>
+        <div class="dir-modal-en" id="dirModalEn"></div>
+      </div>
+      <button class="dir-modal-close" onclick="closeDirModal()">✕</button>
+    </div>
+    <div class="dir-modal-body">
+      <div class="dir-modal-section">
+        <div class="dir-modal-label">学什么</div>
+        <div class="dir-modal-scene" id="dirModalScene"></div>
+      </div>
+      <div class="dir-modal-section">
+        <div class="dir-modal-label">典型项目</div>
+        <div class="dir-modal-example" id="dirModalExample"></div>
+      </div>
+      <div class="dir-modal-section" id="dirModalRepsSection">
+        <div class="dir-modal-label">代表工具</div>
+        <div class="dir-modal-reps" id="dirModalReps"></div>
+      </div>
+      <div class="dir-modal-section" id="dirModalSourcesSection">
+        <div class="dir-modal-label">参考来源</div>
+        <div class="dir-modal-links" id="dirModalSources"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Phase Transition Overlay -->
+<div id="phaseOverlay" style="display:none;position:fixed;inset:0;z-index:800;
+  background:rgba(8,8,16,0.97);align-items:center;justify-content:center;flex-direction:column;">
+  <div id="phaseOverlayInner" style="text-align:center;animation:fadeUp .4s ease;">
+    <div id="phaseOverlayEye" style="font-size:48px;margin-bottom:20px;">🎯</div>
+    <div id="phaseOverlayLabel" style="font-family:var(--font-mono);font-size:11px;
+      letter-spacing:.2em;color:var(--accent);text-transform:uppercase;margin-bottom:12px;">进入新阶段</div>
+    <div id="phaseOverlayTitle" style="font-family:var(--font-head);font-size:32px;
+      font-weight:800;color:var(--text);margin-bottom:10px;">AI / ML 专项</div>
+    <div id="phaseOverlayDesc" style="font-size:14px;color:var(--muted);max-width:400px;line-height:1.7;margin-bottom:32px;"></div>
+    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:20px;" id="phaseOverlayDots"></div>
+    <div style="font-family:var(--font-mono);font-size:11px;color:var(--dim);" id="phaseOverlayTimer">即将开始…</div>
+  </div>
+</div>
+
+<!-- Career Detail Modal -->
+<div id="careerModal" style="display:none;position:fixed;inset:0;z-index:500;
+  background:rgba(0,0,0,.75);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;">
+  <div class="dir-modal-card">
+    <div class="dir-modal-hd">
+      <div>
+        <div class="dir-modal-domain" id="careerModalType"></div>
+        <div class="dir-modal-name" id="careerModalName"></div>
+        <div class="dir-modal-en" id="careerModalEn"></div>
+      </div>
+      <button class="dir-modal-close" onclick="closeCareerModal()">✕</button>
+    </div>
+    <div class="dir-modal-body">
+      <div class="dir-modal-section" id="careerModalBenchmarkSection" style="display:none;">
+        <div class="dir-modal-label">美国官方统计口径（最近似）</div>
+        <div class="career-benchmark-panel">
+          <div class="career-benchmark-head">
+            <div>
+              <div class="career-benchmark-title" id="careerModalBenchmarkLabel"></div>
+              <div class="career-benchmark-subrow">
+                <div class="career-benchmark-sub" id="careerModalBenchmarkSub"></div>
+                <span class="career-benchmark-fit" id="careerModalBenchmarkFit"></span>
+              </div>
+            </div>
+            <a id="careerModalBenchmarkSource" class="career-benchmark-source" href="#" target="_blank" rel="noreferrer">查看来源</a>
+          </div>
+          <div class="career-benchmark-facts">
+            <div class="career-fact">
+              <span class="career-fact-label">中位年薪</span>
+              <strong class="career-fact-value" id="careerModalBenchmarkPay"></strong>
+            </div>
+            <div class="career-fact">
+              <span class="career-fact-label">官方增速</span>
+              <strong class="career-fact-value" id="careerModalBenchmarkOutlook"></strong>
+            </div>
+            <div class="career-fact">
+              <span class="career-fact-label">常见学历</span>
+              <strong class="career-fact-value" id="careerModalBenchmarkEdu"></strong>
+            </div>
+          </div>
+          <div class="career-benchmark-note" id="careerModalBenchmarkNote"></div>
+        </div>
+      </div>
+      <div class="dir-modal-section">
+        <div class="dir-modal-label">典型工作内容</div>
+        <div class="dir-modal-scene" id="careerModalWork"></div>
+      </div>
+      <div class="dir-modal-section">
+        <div class="dir-modal-label">具体例子</div>
+        <div class="dir-modal-example" id="careerModalExample"></div>
+      </div>
+      <div class="dir-modal-section" id="careerModalLeafSection" style="display:none;">
+        <div class="dir-modal-label">树上具体岗位</div>
+        <div class="career-leaf-modal-meta" id="careerModalLeafMeta"></div>
+        <div class="career-leaf-grid" id="careerModalLeafGrid"></div>
+      </div>
+      <div class="dir-modal-section">
+        <div class="dir-modal-label">薪资参考</div>
+        <div class="dir-modal-reps" id="careerModalSalary"></div>
+      </div>
+      <div class="dir-modal-section">
+        <div class="dir-modal-label">下一步建议</div>
+        <div class="dir-modal-example" id="careerModalNext"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Redeem Code Overlay -->
+<div id="redeemOverlay" class="redeem-overlay" style="display:none;">
+  <div class="redeem-card">
+    <button class="redeem-close" onclick="closeRedeemOverlay()" aria-label="关闭">✕</button>
+    <div class="redeem-caption">Quiz Access</div>
+    <div style="font-size:36px;margin-bottom:16px;">🔑</div>
+    <div id="redeemTitle" style="font-family:var(--font-head);font-size:22px;font-weight:800;margin-bottom:8px;">输入兑换码</div>
+    <div id="redeemDesc" class="redeem-desc">
+      兑换码当天有效，兑换后到次日早 9 点前均可重复测试。<br>
+      没有兑换码？前往小红书搜索 <strong style="color:var(--text)">「方向测评」</strong> 购买。
+    </div>
+    <div id="localPreviewHint" style="display:none;font-size:12px;line-height:1.7;margin:-10px 0 20px;color:var(--accent3);background:rgba(109,250,188,.08);border:1px solid rgba(109,250,188,.18);border-radius:10px;padding:10px 12px;">
+      本地预览模式已开启。你可以直接走“本地直接开始”，也可以输入测试码 <strong style="color:var(--text)">0000</strong> 验证兑换流程。
+    </div>
+    <input id="redeemInput" type="text" placeholder="输入兑换码" maxlength="20" class="redeem-input"
+      onkeydown="if(event.key==='Enter')checkRedeemCode()">
+    <div id="redeemError" class="redeem-error"></div>
+    <div class="redeem-actions">
+      <button onclick="checkRedeemCode()" class="redeem-btn">确认兑换码</button>
+      <button id="redeemLocalStartBtn" onclick="continueLocalPreview()" class="redeem-secondary" style="display:none;">本地直接开始</button>
+    </div>
+    <div class="redeem-meta">后续接域名时，建议把兑换码校验迁移到后端 API。</div>
+  </div>
+</div>
+
+<!-- History Page -->
+<div id="history-page" class="info-page" style="display:none;">
+  <div class="info-page-toolbar">
+    <div class="info-page-toolbar-inner">
+      <div class="info-page-nav-main">
+        <button class="info-back-btn" onclick="showPage('home')">← 返回首页</button>
+        <div class="info-page-heading">
+          <div class="info-page-kicker">Saved Reports</div>
+          <span class="info-page-title">历史结果</span>
+          <div class="info-page-meta">最近 20 次本地测评记录</div>
+        </div>
+      </div>
+      <div class="info-page-actions">
+        <button class="info-top-btn" onclick="scrollInfoPageTop('history-page')">↑ 顶部</button>
+      </div>
+    </div>
+  </div>
+  <div class="info-page-inner">
+    <div id="historyContent">
+      <p style="color:var(--muted);font-size:14px;">暂无历史记录。完成测评后结果将自动保存在本设备。</p>
+    </div>
+  </div>
+</div>
+<script src="quiz_v9_13_fixed_1.js?v=20260315ab"></script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    {
+      "source": "/quiz_v9_13_fixed_1.html",
+      "destination": "/",
+      "permanent": false
+    }
+  ]
+}
