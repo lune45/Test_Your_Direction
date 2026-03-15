@@ -3961,13 +3961,49 @@ var DEEP_Qs=[
 
 // ── QUESTION BANK NORMALIZATION / UX CLEANUP ───────────────────────────────
 var _questionBanksNormalized = false;
-var QUESTION_BANKS = [ANCHOR_Qs, AI_Qs, CS_Qs, DS_Qs, ROBOTICS_Qs, EE_Qs, CE_Qs, OR_Qs, DEEP_Qs, CAREER_Qs];
-var ANCHOR_ROUTING_IDS = [
+var ACTIVE_DOMAIN_ORDER = ['ai','cs','ds','robotics','ee','ce','or'];
+var ACTIVE_STAGE1_QS = (window.STAGE1_QS && window.STAGE1_QS.length) ? window.STAGE1_QS : ANCHOR_Qs;
+var ACTIVE_STAGE2_TEMPLATES = (window.STAGE2_TEMPLATES && window.STAGE2_TEMPLATES.length) ? window.STAGE2_TEMPLATES : [];
+var ACTIVE_STAGE3_BANKS = window.STAGE3_BANKS || {};
+var ACTIVE_STAGE4_CAREER_BANKS = window.STAGE4_CAREER_BANKS || {};
+var QUESTION_BANKS = [];
+var LEGACY_ANCHOR_ROUTING_IDS = [
   'a1','a2','a3','a4','a5','a6','a7','a8','a9','a10','a11','a12',
   'a13','a14','a15','a16','a17','a18','a19','a20','a21','a22','a23',
   'a24','a25','a26','a27','a28','a29','a30','a31','a32','a33','a34',
   'a35','a36','a37','a38','a39','a40'
 ];
+function getExternalBankArrays(bankMap, order) {
+  return (order || []).map(function(key) {
+    return bankMap[key];
+  }).filter(function(bank) {
+    return Array.isArray(bank) && bank.length;
+  });
+}
+
+function rebuildQuestionBanks() {
+  QUESTION_BANKS = [
+    ACTIVE_STAGE1_QS,
+    AI_Qs,
+    CS_Qs,
+    DS_Qs,
+    ROBOTICS_Qs,
+    EE_Qs,
+    CE_Qs,
+    OR_Qs
+  ]
+    .concat(getExternalBankArrays(ACTIVE_STAGE3_BANKS, ACTIVE_DOMAIN_ORDER))
+    .concat(getExternalBankArrays(ACTIVE_STAGE4_CAREER_BANKS, ACTIVE_DOMAIN_ORDER))
+    .concat([DEEP_Qs, CAREER_Qs]);
+}
+
+function getActiveAnchorRoutingIds() {
+  if (ACTIVE_STAGE1_QS === ANCHOR_Qs) return LEGACY_ANCHOR_ROUTING_IDS.slice();
+  return ACTIVE_STAGE1_QS.map(function(q) { return q.id; });
+}
+
+rebuildQuestionBanks();
+
 var ENGLISH_ONLY_RE = /^[^一-龥]*[A-Za-z][^一-龥]*$/;
 var PREFERENCE_QUESTION_RE = /感兴趣|研究冲动|最关注|最在意|最想深入|最想每天做|职业偏好|更愿意|更喜欢|最享受|最想做|最有吸引力|最值得|最希望|最想专攻|最想攻克|最想解决|偏好|最重要|最优先|最自然|最核心|最愿意|最有研究动力/;
 var NEUTRAL_OPTION_RE = /没有明确|无明显偏好|暂时没有|不特别想|都不是我|不感兴趣|核心兴趣|目前不在|暂时还没有特别|还没有特别|想再多看看|没有特别想|没有特别吸引力|没有特别偏好|不是我最想长期投入|不是我最(?:想|感兴趣).*方向|不是我最感兴趣|目前不是我最感兴趣|目前不是我最想|都不是我最感兴趣|都不是我最想/;
@@ -4116,6 +4152,7 @@ var QUESTION_HINT_RULES = [
 ];
 var PHASE_META = {
   anchor:   {part:'第一部分', section:'粗分与性格锚定', pill:'第一部分 · 基础锚定', short:'基础锚定', icon:'🧭', color:'var(--accent3)', desc:'先不急着谈具体专业，先看你更像哪类问题解决者，以及你做事时真正被什么驱动。'},
+  bridge:   {part:'第二部分', section:'交界方向分流', pill:'第二部分 · 交界分流', short:'交界分流', icon:'🪄', color:'var(--accent)', desc:'把前面露头的 2-3 个大方向放在一起比较，看看你真正愿意长期投入的是哪一条主线。'},
   ai:       {part:'第二部分', section:'专业与方向细分', pill:'第二部分 · AI / ML', short:'AI / ML 专项', icon:'🤖', color:'var(--ai-color)', desc:'继续在 AI / ML 里收窄到你愿意长期投入的子方向。'},
   cs:       {part:'第二部分', section:'专业与方向细分', pill:'第二部分 · CS', short:'CS 专项', icon:'⚙️', color:'var(--cs-color)', desc:'继续在计算机科学里判断你更偏系统、理论、语言还是交互。'},
   ds:       {part:'第二部分', section:'专业与方向细分', pill:'第二部分 · DS / Stats', short:'数据科学专项', icon:'📊', color:'var(--ds-color)', desc:'继续细分你更偏统计推断、数据产品、数据工程还是因果分析。'},
@@ -4349,6 +4386,7 @@ function resetAll(){
 
 function getStageKey(phaseKey) {
   if (phaseKey === 'anchor') return 'part1';
+  if (phaseKey === 'bridge') return 'part2';
   if (phaseKey === 'deep') return 'part3';
   if (phaseKey === 'career') return 'part4';
   return 'part2';
@@ -4397,7 +4435,7 @@ function startQuiz(){
       var quiz  = document.getElementById('quiz');
       if (intro) intro.style.display = 'none';
       if (quiz)  quiz.style.display  = 'block';
-      qSequence = ANCHOR_Qs.slice();
+      qSequence = ACTIVE_STAGE1_QS.slice();
       curIdx = 0;
       updateProgress();
       renderQ();
@@ -4447,6 +4485,15 @@ function getQuestionById(qid) {
     found = bank.find(function(q) { return q.id === qid; });
     return !!found;
   });
+  if (!found && ACTIVE_STAGE2_TEMPLATES.length && qid && qid.indexOf('__') > -1) {
+    var parts = qid.split('__');
+    var templateId = parts[0];
+    var domains = (parts[1] || '').split('_').filter(Boolean);
+    var template = ACTIVE_STAGE2_TEMPLATES.find(function(item) { return item.id === templateId; });
+    if (template && domains.length) {
+      found = buildBridgeQuestion(template, domains);
+    }
+  }
   return found;
 }
 
@@ -4481,7 +4528,7 @@ function getDomainScoresFromLeafScores(leafScores) {
 
 function getAnchorRoutingScores() {
   var routingLookup = {};
-  ANCHOR_ROUTING_IDS.forEach(function(id) { routingLookup[id] = true; });
+  getActiveAnchorRoutingIds().forEach(function(id) { routingLookup[id] = true; });
   return getDomainScoresFromLeafScores(collectLeafScoresFromAnswers(function(q) {
     return q.phase === 'anchor' && !!routingLookup[q.id];
   }));
@@ -4503,12 +4550,19 @@ function getPhase2DecisionScores() {
   };
   answers.forEach(function(answer) {
     var q = getQuestionById(answer.qid);
-    if (!q || !activeLookup[q.phase]) return;
-    var phaseDomain = q.phase;
+    if (!q || getStageKey(q.phase) !== 'part2') return;
     (answer.selectedIdxs || []).forEach(function(idx) {
       var opt = q.opts[idx];
-      if (!opt || !opt.d) return;
-      trackScores[phaseDomain] = (trackScores[phaseDomain] || 0) + 2.4;
+      if (!opt) return;
+      if (q.phase === 'bridge' && opt.domains) {
+        Object.keys(opt.domains).forEach(function(dom) {
+          if (!activeLookup[dom]) return;
+          trackScores[dom] = (trackScores[dom] || 0) + opt.domains[dom];
+        });
+        return;
+      }
+      if (!opt.d || !activeLookup[q.phase]) return;
+      trackScores[q.phase] = (trackScores[q.phase] || 0) + 2.2;
       Object.keys(activeLookup).forEach(function(dom) {
         var domKey = dom === 'robotics' ? 'rb' : dom;
         var contribution = (DOMAIN_KEYS[domKey] || []).reduce(function(sum, key) {
@@ -4516,7 +4570,7 @@ function getPhase2DecisionScores() {
           return sum + (opt.d[key] || 0);
         }, 0);
         if (!contribution) return;
-        var weight = dom === phaseDomain ? 0.9 : 0.28;
+        var weight = dom === q.phase ? 0.88 : 0.25;
         trackScores[dom] = (trackScores[dom] || 0) + contribution * weight;
       });
     });
@@ -4543,21 +4597,32 @@ function resolvePhase2Domains() {
   });
   var top = ranking[0];
   var second = ranking[1];
-  if (!top || top.score <= 0) return ['ai'];
+  var third = ranking[2];
+  if (!top) return ['cs', 'ds'];
   var activated = [top.dom];
   if (second && second.score > 0) {
     var total = ranking.reduce(function(sum, item){ return sum + item.score; }, 0) || 1;
     var secondShare = second.score / total;
     var secondRel = second.score / (top.score || 1);
-    var closeGap = (top.score - second.score) <= 5;
-    if (second.score >= 9 && (secondRel >= 0.66 || secondShare >= 0.22 || closeGap)) {
-      activated.push(second.dom);
-    }
+    var closeGap = (top.score - second.score) <= 7;
+    if (secondRel >= 0.58 || secondShare >= 0.18 || closeGap) activated.push(second.dom);
+  }
+  if (third && third.score > 0 && activated.length >= 2) {
+    var thirdShare = third.score / ((ranking.reduce(function(sum, item){ return sum + item.score; }, 0)) || 1);
+    var thirdRel = third.score / (second && second.score ? second.score : 1);
+    var thirdGap = (top.score - third.score) <= 10;
+    if (thirdRel >= 0.78 || thirdShare >= 0.14 || thirdGap) activated.push(third.dom);
+  }
+  if (activated.length === 1 && second) {
+    activated.push(second.dom);
   }
   return activated;
 }
 
 function getPhase2TrackLimit(domainCount, dom) {
+  if (ACTIVE_STAGE2_TEMPLATES.length) {
+    return Math.min(ACTIVE_STAGE2_TEMPLATES.length, ({1:8,2:9,3:10}[domainCount] || 10));
+  }
   var bank = PHASE2_TRACKS[dom] || [];
   return Math.min(bank.length, PHASE2_LIMITS[domainCount] || 9);
 }
@@ -4570,7 +4635,7 @@ function resolvePhase2Focus() {
       dom: dom,
       score: phase2Scores[dom] || 0,
       tie: anchorScores[dom] || 0,
-      combined: (phase2Scores[dom] || 0) + (anchorScores[dom] || 0) * 0.38
+      combined: (phase2Scores[dom] || 0) + (anchorScores[dom] || 0) * 0.24
     };
   }).sort(function(a, b) {
     if (b.combined !== a.combined) return b.combined - a.combined;
@@ -4583,12 +4648,14 @@ function resolvePhase2Focus() {
     var topScore = ranked[0].combined || 1;
     var secondScore = ranked[1].combined || 0;
     var pairTotal = ranked[0].combined + secondScore || 1;
-    if (secondScore >= topScore * 0.8 && secondScore / pairTotal >= 0.35) finalists.push(ranked[1].dom);
+    if (secondScore >= topScore * 0.78 && secondScore / pairTotal >= 0.34) finalists.push(ranked[1].dom);
   }
   return { finalists: finalists, primary: finalists[0] || (ranked[0] && ranked[0].dom) || null };
 }
 
 function getDeepQuestionsForPrimaryDomain(dom) {
+  var activeBank = ACTIVE_STAGE3_BANKS[dom];
+  if (Array.isArray(activeBank) && activeBank.length) return activeBank.slice();
   var ids = DEEP_DOMAIN_MAP[dom] || [];
   return ids.map(function(id) {
     return DEEP_Qs.find(function(q) { return q.id === id; });
@@ -4613,11 +4680,43 @@ function getCareerClustersForPrimaryDomain(dom) {
   return selected;
 }
 
+function buildBridgeQuestion(template, domains) {
+  var options = (domains || []).map(function(dom) {
+    var base = template.optionMap ? template.optionMap[dom] : null;
+    if (!base) return null;
+    return {
+      t: base.t,
+      sub: base.sub || '',
+      d: base.d || {},
+      domains: base.domains || {}
+    };
+  }).filter(Boolean);
+  var question = {
+    id: template.id + '__' + (domains || []).join('_'),
+    sourceId: template.id,
+    phase: 'bridge',
+    cat: template.cat || '交界分流',
+    text: template.text,
+    hint: template.hint || '',
+    opts: options
+  };
+  if (needsNeutralOption(question)) question.opts.push(buildNeutralOption(question));
+  return question;
+}
+
 function buildPhaseSequence(){
   if(phaseBuilt) return;
   phaseBuilt=true;
   phase2Domains = resolvePhase2Domains();
   activatePhaseDomains(phase2Domains);
+
+  if (ACTIVE_STAGE2_TEMPLATES.length) {
+    ACTIVE_STAGE2_TEMPLATES.slice(0, getPhase2TrackLimit(phase2Domains.length)).forEach(function(template) {
+      qSequence.push(buildBridgeQuestion(template, phase2Domains));
+    });
+    updateProgress();
+    return;
+  }
 
   var added={};
   phase2Domains.forEach(function(dom){
@@ -4648,7 +4747,7 @@ function buildDeepSequence(){
     }).slice(0, PHASE3_LIMIT).map(function(item) { return item.q; });
   }
 
-  candidates.slice(0, PHASE3_LIMIT).forEach(function(q) {
+  candidates.slice(0, candidates.length).forEach(function(q) {
     qSequence.push(q);
   });
   updateProgress();
@@ -4745,6 +4844,14 @@ function buildCareerSequence(){
   if(careerBuilt) return;
   careerBuilt=true;
 
+  var activeCareerBank = ACTIVE_STAGE4_CAREER_BANKS[primaryDomain];
+  if (Array.isArray(activeCareerBank) && activeCareerBank.length) {
+    careerClustersSelected = [];
+    qSequence = qSequence.concat(activeCareerBank.slice());
+    updateProgress();
+    return;
+  }
+
   careerClustersSelected = getCareerClustersForPrimaryDomain(primaryDomain);
   if (!careerClustersSelected.length) {
     careerClustersSelected = Object.keys(CAREER_CLUSTER_TRIGGERS).sort(function(a, b) {
@@ -4776,7 +4883,7 @@ function commitAndNext(isMulti){
   curIdx++;
 
   // After anchor phase → build domain tracks
-  if(!phaseBuilt && prevStage==='part1' && curIdx>=ANCHOR_Qs.length){
+  if(!phaseBuilt && prevStage==='part1' && curIdx>=ACTIVE_STAGE1_QS.length){
     buildPhaseSequence();
   }
 
@@ -5381,8 +5488,8 @@ function getCareerLeafScores(options) {
     });
   }
   answers.forEach(function(answer){
-    var q = CAREER_Qs.find(function(item){ return item.id === answer.qid; });
-    if(!q) return;
+    var q = getQuestionById(answer.qid);
+    if(!q || q.phase !== 'career') return;
     answer.selectedIdxs.forEach(function(idx){
       var opt = q.opts[idx];
       if(!opt || !opt.career) return;
@@ -5982,6 +6089,7 @@ function finalizeQuizRender() {
 
 function _startQuizCore() {
   try {
+    rebuildQuestionBanks();
     normalizeQuestionBanks();
     _viewingHistorySnapshot = false;
     _activeHistorySnapshot = null;
@@ -5995,7 +6103,7 @@ function _startQuizCore() {
     showQuizLoadingState();
     resetAll();
     // Build anchor questions
-    qSequence = ANCHOR_Qs.slice();
+    qSequence = ACTIVE_STAGE1_QS.slice();
     curIdx = 0;
     updateProgress();
     renderQ();
