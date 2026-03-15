@@ -2343,7 +2343,7 @@ body:not(.in-results) .results-top-nav { display: none !important; }
 
 
 /* ─── DIRECTION DETAIL MODAL ─── */
-#dirModal { display: none; }
+#dirModal { display: none; overflow-y: auto; overscroll-behavior: contain; }
 #dirModal.open { display: flex; }
 
 .dir-modal-card {
@@ -2447,6 +2447,10 @@ body:not(.in-results) .results-top-nav { display: none !important; }
   padding: 0;
   background: transparent;
   border: none;
+}
+#careerModal {
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 /* Clickable direction cards */
@@ -2604,7 +2608,11 @@ body:not(.in-quiz) .quiz-home-btn { display: none !important; }
   font-family: var(--font-mono); font-size: 10px; letter-spacing: .08em;
   color: var(--dim);
 }
-body.modal-open { overflow: hidden; }
+html.modal-open,
+body.modal-open {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
 
 
 /* ─── NAV RIGHT (login state) ─── */
