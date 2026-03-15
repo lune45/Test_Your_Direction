@@ -6111,8 +6111,8 @@ function buildHistoryPage() {
 
 // Hook into showResults to save
 var _origShowResults2 = showResults;
-showResults = function() {
-  _origShowResults2();
+showResults = function(options) {
+  _origShowResults2(options);
   var heroLabel = document.getElementById('resultHeroLabel');
   if (heroLabel) {
     heroLabel.textContent = _viewingHistorySnapshot ? '历史报告 · 回看模式' : '方向报告 · 综合分析';
