@@ -4481,6 +4481,30 @@ function getPhaseDomainScores() {
   };
 }
 
+function buildBridgeQuestionFromResolvedDomains(template, bridgeDomains) {
+  var options = (bridgeDomains || []).map(function(dom) {
+    var base = template.optionMap ? template.optionMap[dom] : null;
+    if (!base) return null;
+    return {
+      t: base.t,
+      sub: (base.sub && !/更偏|更像/.test(base.sub)) ? base.sub : '',
+      d: base.d || {},
+      domains: base.domains || {}
+    };
+  }).filter(Boolean);
+  var question = {
+    id: template.id + '__' + (bridgeDomains || []).join('_'),
+    sourceId: template.id,
+    phase: 'bridge',
+    cat: template.cat || '交界分流',
+    text: template.text,
+    hint: template.hint || '这一步会把 3-4 个看起来都像你的方向放在一起，继续比较你更愿意长期面对哪一类问题。',
+    opts: options
+  };
+  if (needsNeutralOption(question)) question.opts.push(buildNeutralOption(question));
+  return question;
+}
+
 function getQuestionById(qid) {
   var found = null;
   QUESTION_BANKS.some(function(bank) {
@@ -4493,7 +4517,7 @@ function getQuestionById(qid) {
     var domains = (parts[1] || '').split('_').filter(Boolean);
     var template = ACTIVE_STAGE2_TEMPLATES.find(function(item) { return item.id === templateId; });
     if (template && domains.length) {
-      found = buildBridgeQuestion(template, domains);
+      found = buildBridgeQuestionFromResolvedDomains(template, domains);
     }
   }
   return found;
@@ -4723,27 +4747,7 @@ function getCareerClustersForPrimaryDomain(dom) {
 
 function buildBridgeQuestion(template, domains) {
   var bridgeDomains = expandBridgeDomains(domains || [], 4, 4, getRankedDomainsFromScores(getAnchorRoutingScores()));
-  var options = bridgeDomains.map(function(dom) {
-    var base = template.optionMap ? template.optionMap[dom] : null;
-    if (!base) return null;
-    return {
-      t: base.t,
-      sub: (base.sub && !/更偏|更像/.test(base.sub)) ? base.sub : '',
-      d: base.d || {},
-      domains: base.domains || {}
-    };
-  }).filter(Boolean);
-  var question = {
-    id: template.id + '__' + bridgeDomains.join('_'),
-    sourceId: template.id,
-    phase: 'bridge',
-    cat: template.cat || '交界分流',
-    text: template.text,
-    hint: template.hint || '这一步会把 3-4 个看起来都像你的方向放在一起，继续比较你更愿意长期面对哪一类问题。',
-    opts: options
-  };
-  if (needsNeutralOption(question)) question.opts.push(buildNeutralOption(question));
-  return question;
+  return buildBridgeQuestionFromResolvedDomains(template, bridgeDomains);
 }
 
 function appendQuestionsUnique(list) {
