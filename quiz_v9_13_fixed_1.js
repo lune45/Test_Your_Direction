@@ -191,6 +191,195 @@ var UMBRELLA_DIRS = {
   efficient:1, rl:1, generative:1, multimodal:1, arch:1, dl:1
 };
 
+// These are valid score buckets during routing, but they are too coarse to be
+// shown as the final "best matched research direction" in results.
+var NON_LEAF_DIRS = Object.assign({}, UMBRELLA_DIRS, {
+  systems:1,
+  theory:1,
+  elec_sys:1,
+  stats:1,
+  robotics:1,
+  optim:1,
+  ml_theory:1,
+  dist_sys:1,
+  ds_sci:1,
+  signal:1,
+  comm:1,
+  control:1,
+  embedded:1,
+  perception:1,
+  autonomous:1,
+  embodied:1,
+  or_ops:1,
+  stoch:1,
+  ai_hw:1,
+  hw_sw:1,
+  emb_sw:1
+});
+
+var EXTRA_DIRS = {
+  // AI / ML extensions
+  meta_learning:      {name:'Meta Learning · 元学习',                          domain:'ai', group:'ml_found',  en:'Meta Learning'},
+  prob_ml:            {name:'Probabilistic ML · 概率机器学习',                domain:'ai', group:'ml_theory', en:'Probabilistic Machine Learning'},
+  bayes_ml:           {name:'Bayesian ML · 贝叶斯机器学习',                   domain:'ai', group:'ml_theory', en:'Bayesian Machine Learning'},
+  search_ranking:     {name:'Search & Ranking · 搜索与排序',                  domain:'ai', group:'lang',      en:'Search & Ranking'},
+  visual_understanding:{name:'Visual Understanding · 视觉理解',               domain:'ai', group:'vision',    en:'Visual Understanding'},
+  image_generation:   {name:'Image Generation · 图像生成',                    domain:'ai', group:'gen',       en:'Image Generation'},
+  multimodal_reasoning:{name:'Multimodal Reasoning · 多模态推理',            domain:'ai', group:'multi',     en:'Multimodal Reasoning'},
+  audio_visual:       {name:'Audio-Visual Learning · 音视协同学习',           domain:'ai', group:'multi',     en:'Audio-Visual Learning'},
+  autoregressive:     {name:'Autoregressive Generation · 自回归生成',         domain:'ai', group:'gen',       en:'Autoregressive Generation'},
+  controllable_gen:   {name:'Controllable Generation · 可控生成',             domain:'ai', group:'gen',       en:'Controllable Generation'},
+  content_gen:        {name:'AI Content Generation · 内容生成系统',           domain:'ai', group:'gen',       en:'AI Content Generation'},
+  imitation:          {name:'Imitation Learning · 模仿学习',                  domain:'ai', group:'decision',  en:'Imitation Learning'},
+  decision_uncertainty:{name:'Decision under Uncertainty · 不确定决策学习',  domain:'ai', group:'decision',  en:'Decision Making under Uncertainty'},
+  model_compression:  {name:'Model Compression · 模型压缩',                   domain:'ai', group:'efficient', en:'Model Compression'},
+  distillation:       {name:'Distillation · 知识蒸馏',                        domain:'ai', group:'efficient', en:'Distillation'},
+  training_eff:       {name:'Training Efficiency · 训练效率',                 domain:'ai', group:'efficient', en:'Training Efficiency'},
+  // CS extensions
+  storage_sys:        {name:'Storage Systems · 存储系统',                     domain:'cs', group:'data_sys',  en:'Storage Systems'},
+  data_mgmt:          {name:'Data Management · 数据管理',                     domain:'cs', group:'data_sys',  en:'Data Management'},
+  big_data:           {name:'Big Data Systems · 大数据系统',                  domain:'cs', group:'data_sys',  en:'Big Data Systems'},
+  online_algo:        {name:'Online Algorithms · 在线算法',                   domain:'cs', group:'theory',    en:'Online Algorithms'},
+  testing:            {name:'Software Testing · 软件测试与分析',              domain:'cs', group:'pl',        en:'Software Testing & Analysis'},
+  privacy_eng:        {name:'Privacy Engineering · 隐私工程',                domain:'cs', group:'sec',       en:'Privacy Engineering'},
+  wireless_net:       {name:'Wireless Networks · 无线网络',                  domain:'cs', group:'net',       en:'Wireless Networks'},
+  mobile_sys:         {name:'Mobile Systems · 移动系统',                     domain:'cs', group:'net',       en:'Mobile Systems'},
+  internet_arch:      {name:'Internet Architecture · 互联网体系结构',         domain:'cs', group:'net',       en:'Internet Architecture'},
+  net_measure:        {name:'Network Measurement · 网络测量',                 domain:'cs', group:'net',       en:'Network Measurement'},
+  rendering:          {name:'Rendering · 渲染',                              domain:'cs', group:'graphics',  en:'Rendering'},
+  animation:          {name:'Animation · 动画系统',                          domain:'cs', group:'graphics',  en:'Animation'},
+  game_tech:          {name:'Game Technology · 游戏技术',                    domain:'cs', group:'graphics',  en:'Game Technology'},
+  computational_imaging:{name:'Computational Imaging · 计算成像',            domain:'cs', group:'graphics',  en:'Computational Imaging'},
+  ubiquitous:         {name:'Ubiquitous Computing · 普适计算',               domain:'cs', group:'hci',       en:'Ubiquitous Computing'},
+  social_comp:        {name:'Social Computing · 社会计算',                   domain:'cs', group:'hci',       en:'Social Computing'},
+  interactive_sys:    {name:'Interactive Systems · 交互式系统',              domain:'cs', group:'hci',       en:'Interactive Systems'},
+  accessibility:      {name:'Accessibility · 无障碍计算',                    domain:'cs', group:'hci',       en:'Accessibility'},
+  human_ai:           {name:'Human-Centered AI · 以人为中心的 AI',           domain:'cs', group:'hci',       en:'Human-Centered AI'},
+  sci_vis:            {name:'Scientific Visualization · 科学可视化',         domain:'cs', group:'vis',       en:'Scientific Visualization'},
+  info_vis:           {name:'Information Visualization · 信息可视化',        domain:'cs', group:'vis',       en:'Information Visualization'},
+  explain_vis:        {name:'Explainable Visualization · 可解释可视化',      domain:'cs', group:'vis',       en:'Explainable Visualization'},
+  // EE extensions
+  analog_circuits:    {name:'Analog Circuits · 模拟电路',                    domain:'ee', group:'elec',      en:'Analog Circuits'},
+  digital_circuits:   {name:'Digital Circuits · 数字电路',                   domain:'ee', group:'elec',      en:'Digital Circuits'},
+  mixed_signal:       {name:'Mixed-Signal Systems · 混合信号系统',           domain:'ee', group:'elec',      en:'Mixed-Signal Systems'},
+  hardware_proto:     {name:'Hardware Prototyping · 硬件原型',               domain:'ee', group:'elec',      en:'Hardware Prototyping'},
+  image_signal:       {name:'Image Signal Processing · 图像信号处理',        domain:'ee', group:'signal',    en:'Image Signal Processing'},
+  speech_signal:      {name:'Speech Signal Processing · 语音信号处理',       domain:'ee', group:'signal',    en:'Speech Signal Processing'},
+  audio_signal:       {name:'Audio Processing · 音频处理',                   domain:'ee', group:'signal',    en:'Audio Processing'},
+  stat_signal:        {name:'Statistical Signal Processing · 统计信号处理',  domain:'ee', group:'signal',    en:'Statistical Signal Processing'},
+  sensor_signal:      {name:'Sensor Signal Processing · 传感器信号处理',     domain:'ee', group:'signal',    en:'Sensor Signal Processing'},
+  mobile_comm:        {name:'Mobile Communication · 移动通信',               domain:'ee', group:'comm',      en:'Mobile Communication'},
+  coding_theory:      {name:'Coding Theory · 编码理论',                      domain:'ee', group:'comm',      en:'Coding Theory'},
+  comm_networks:      {name:'Communication Networks · 通信网络',             domain:'ee', group:'comm',      en:'Communication Networks'},
+  nextgen_comm:       {name:'Next-Generation Comm · 下一代通信系统',         domain:'ee', group:'comm',      en:'Next-Generation Communication Systems'},
+  dynamical_systems:  {name:'Dynamical Systems · 动力系统',                  domain:'ee', group:'control',   en:'Dynamical Systems'},
+  autonomous_control: {name:'Autonomous Systems Control · 自主系统控制',     domain:'ee', group:'control',   en:'Autonomous Systems Control'},
+  cps:                {name:'Cyber-Physical Systems · 信息物理系统',         domain:'ee', group:'embedded',  en:'Cyber-Physical Systems'},
+  realtime:           {name:'Real-Time Systems · 实时系统',                  domain:'ee', group:'embedded',  en:'Real-Time Systems'},
+  sensor_networks:    {name:'Sensor Networks · 传感网络',                    domain:'ee', group:'embedded',  en:'Sensor Networks'},
+  edge_devices:       {name:'Edge Devices · 边缘设备',                       domain:'ee', group:'embedded',  en:'Edge Devices'},
+  digital_ic:         {name:'Digital IC Design · 数字 IC 设计',              domain:'ee', group:'vlsi',      en:'Digital IC Design'},
+  asic:               {name:'ASIC Design · 专用芯片设计',                    domain:'ee', group:'vlsi',      en:'ASIC Design'},
+  low_power:          {name:'Low-Power Design · 低功耗设计',                 domain:'ee', group:'vlsi',      en:'Low-Power Design'},
+  semiconductor_devices:{name:'Semiconductor Devices · 半导体器件',         domain:'ee', group:'vlsi',      en:'Semiconductor Devices'},
+  optoelectronics:    {name:'Optoelectronics · 光电器件',                    domain:'ee', group:'vlsi',      en:'Optoelectronics'},
+  mems:               {name:'MEMS · 微机电系统',                             domain:'ee', group:'vlsi',      en:'MEMS'},
+  nanoelectronics:    {name:'Nanoelectronics · 纳米电子学',                  domain:'ee', group:'vlsi',      en:'Nanoelectronics'},
+  emerging_devices:   {name:'Emerging Hardware Devices · 新型硬件器件',      domain:'ee', group:'vlsi',      en:'Emerging Hardware Devices'},
+  // DS extensions
+  probability:        {name:'Probability · 概率论',                          domain:'ds', group:'stats',     en:'Probability'},
+  applied_stats:      {name:'Applied Statistics · 应用统计',                 domain:'ds', group:'stats',     en:'Applied Statistics'},
+  predictive_modeling:{name:'Predictive Modeling · 预测建模',               domain:'ds', group:'ds_anal',   en:'Predictive Modeling'},
+  stat_modeling:      {name:'Statistical Modeling · 统计建模',              domain:'ds', group:'ds_anal',   en:'Statistical Modeling'},
+  experimentation:    {name:'Experimentation · 实验设计与评估',             domain:'ds', group:'causal',    en:'Experimentation'},
+  decision_analytics: {name:'Decision Analytics · 决策分析',                domain:'ds', group:'causal',    en:'Decision Analytics'},
+  data_pipelines:     {name:'Data Pipelines · 数据流水线',                   domain:'ds', group:'ds_eng',    en:'Data Pipelines'},
+  data_warehouse:     {name:'Data Warehousing · 数据仓库',                  domain:'ds', group:'ds_eng',    en:'Data Warehousing'},
+  risk_modeling:      {name:'Risk Modeling · 风险建模',                      domain:'ds', group:'domain',    en:'Risk Modeling'},
+  industrial_ds:      {name:'Industrial Data Science · 产业数据科学',        domain:'ds', group:'domain',    en:'Industrial Data Science'},
+  financial_ds:       {name:'Financial Data Science · 金融数据科学',         domain:'ds', group:'domain',    en:'Financial Data Science'},
+  bioinfo_ds:         {name:'Bioinformatics / Biomedical DS · 生物医学数据科学', domain:'ds', group:'domain', en:'Bioinformatics / Biomedical Data Science'},
+  social_ds:          {name:'Computational Social Science · 计算社会科学',   domain:'ds', group:'domain',    en:'Computational Social Science'},
+  mobility_ds:        {name:'Urban / Mobility Data Science · 城市与交通数据科学', domain:'ds', group:'domain', en:'Urban / Mobility Data Science'},
+  env_ds:             {name:'Environmental Data Science · 环境数据科学',     domain:'ds', group:'domain',    en:'Environmental Data Science'},
+  health_ds:          {name:'Healthcare Analytics · 医疗健康分析',           domain:'ds', group:'domain',    en:'Healthcare Analytics'},
+  recommender_analytics:{name:'Recommender Analytics · 推荐分析',           domain:'ds', group:'domain',    en:'Recommender Analytics'},
+  business_intel:     {name:'Business Intelligence · 商业智能',              domain:'ds', group:'domain',    en:'Business Intelligence'},
+  // Robotics extensions
+  robot_learning:     {name:'Robot Learning · 机器人学习',                   domain:'rb', group:'rb_found',  en:'Robot Learning'},
+  robot_kinematics:   {name:'Robot Kinematics · 机器人运动学',              domain:'rb', group:'rb_found',  en:'Robot Kinematics'},
+  robot_dynamics:     {name:'Robot Dynamics · 机器人动力学',                domain:'rb', group:'rb_found',  en:'Robot Dynamics'},
+  localization_mapping:{name:'Localization & Mapping · 定位与建图',         domain:'rb', group:'rb_perc',   en:'Localization & Mapping'},
+  sensor_fusion_rb:   {name:'Sensor Fusion · 机器人传感融合',               domain:'rb', group:'rb_perc',   en:'Sensor Fusion'},
+  visual_navigation:  {name:'Visual Navigation · 视觉导航',                 domain:'rb', group:'rb_perc',   en:'Visual Navigation'},
+  spatial_understanding:{name:'Spatial Understanding · 空间理解',           domain:'rb', group:'rb_perc',   en:'Spatial Understanding'},
+  assistive_rb:       {name:'Assistive Robotics · 辅助机器人',              domain:'rb', group:'hri',       en:'Assistive Robotics'},
+  collaborative_rb:   {name:'Collaborative Robotics · 协作机器人',          domain:'rb', group:'hri',       en:'Collaborative Robotics'},
+  social_rb:          {name:'Social Robotics · 社交机器人',                 domain:'rb', group:'hri',       en:'Social Robotics'},
+  interactive_robot:  {name:'Interactive Robot Systems · 交互式机器人系统', domain:'rb', group:'hri',       en:'Interactive Robot Systems'},
+  drones:             {name:'Drones / UAV Systems · 无人机系统',            domain:'rb', group:'auto',      en:'Drones / UAV Systems'},
+  multi_robot:        {name:'Multi-Robot Systems · 多机器人系统',           domain:'rb', group:'auto',      en:'Multi-Robot Systems'},
+  field_robotics:     {name:'Field Robotics · 野外机器人',                  domain:'rb', group:'auto',      en:'Field Robotics'},
+  marine_robotics:    {name:'Marine Robotics · 海洋机器人',                 domain:'rb', group:'auto',      en:'Marine Robotics'},
+  intelligent_mobility:{name:'Intelligent Mobility Systems · 智能交通自主系统', domain:'rb', group:'auto', en:'Intelligent Mobility Systems'},
+  // OR / Math extensions
+  applied_math:       {name:'Applied Mathematics · 应用数学',               domain:'or', group:'math_found',en:'Applied Mathematics'},
+  numerical_analysis: {name:'Numerical Analysis · 数值分析',                domain:'or', group:'math_found',en:'Numerical Analysis'},
+  comp_math:          {name:'Computational Mathematics · 计算数学',         domain:'or', group:'math_found',en:'Computational Mathematics'},
+  differential_eq:    {name:'Differential Equations · 微分方程',            domain:'or', group:'math_found',en:'Differential Equations'},
+  matrix_tensor:      {name:'Matrix / Tensor Computation · 矩阵与张量计算', domain:'or', group:'math_found',en:'Matrix / Tensor Computation'},
+  nonconvex_opt:      {name:'Non-Convex Optimization · 非凸优化',           domain:'or', group:'optim',     en:'Non-Convex Optimization'},
+  large_scale_opt:    {name:'Large-Scale Optimization · 大规模优化',        domain:'or', group:'optim',     en:'Large-Scale Optimization'},
+  variational:        {name:'Variational Methods · 变分方法',               domain:'or', group:'optim',     en:'Variational Methods'},
+  decision_science:   {name:'Decision Science · 决策科学',                 domain:'or', group:'or',        en:'Decision Science'},
+  resource_alloc:     {name:'Resource Allocation · 资源分配',               domain:'or', group:'or',        en:'Resource Allocation'},
+  revenue_opt:        {name:'Revenue / Utility Optimization · 收益与效用优化', domain:'or', group:'or',    en:'Revenue / Utility Optimization'},
+  queueing:           {name:'Queueing Theory · 排队论',                     domain:'or', group:'stoch',     en:'Queueing Theory'},
+  prob_modeling:      {name:'Probabilistic Modeling · 概率建模',            domain:'or', group:'stoch',     en:'Probabilistic Modeling'},
+  simulation:         {name:'Simulation · 仿真',                            domain:'or', group:'stoch',     en:'Simulation'},
+  risk_analysis:      {name:'Risk Analysis · 风险分析',                     domain:'or', group:'stoch',     en:'Risk Analysis'},
+  seq_decision:       {name:'Sequential Decision Making · 序贯决策',        domain:'or', group:'decision',  en:'Sequential Decision Making'},
+  mechanism_design:   {name:'Mechanism Design · 机制设计',                  domain:'or', group:'decision',  en:'Mechanism Design'},
+  opt_for_ai:         {name:'Optimization for AI Systems · 面向 AI 系统的优化', domain:'or', group:'decision', en:'Optimization for AI Systems'},
+  planning_uncertainty:{name:'Planning under Uncertainty · 不确定环境规划', domain:'or', group:'decision',  en:'Planning under Uncertainty'},
+  comp_finance:       {name:'Computational Finance · 计算金融',             domain:'or', group:'app_math',  en:'Computational Finance'},
+  industrial_opt:     {name:'Industrial Optimization · 工业优化',           domain:'or', group:'app_math',  en:'Industrial Optimization'},
+  energy_modeling:    {name:'Energy Systems Modeling · 能源系统建模',       domain:'or', group:'app_math',  en:'Energy Systems Modeling'},
+  transport_modeling: {name:'Transportation Modeling · 交通系统建模',       domain:'or', group:'app_math',  en:'Transportation Modeling'},
+  applied_modeling:   {name:'Applied Scientific Modeling · 应用科学建模',   domain:'or', group:'app_math',  en:'Applied Scientific Modeling'},
+  // CE extensions
+  processor_arch:     {name:'Processor Architecture · 处理器体系结构',      domain:'ce', group:'arch',      en:'Processor Architecture'},
+  parallel_arch:      {name:'Parallel Architecture · 并行体系结构',         domain:'ce', group:'arch',      en:'Parallel Architecture'},
+  hetero_arch:        {name:'Heterogeneous Architecture · 异构体系结构',    domain:'ce', group:'arch',      en:'Heterogeneous Architecture'},
+  accelerator_arch:   {name:'Accelerator Architecture · 加速器体系结构',    domain:'ce', group:'arch',      en:'Accelerator Architecture'},
+  embedded_computing: {name:'Embedded Computing · 嵌入式计算',             domain:'ce', group:'emb_ce',    en:'Embedded Computing'},
+  firmware_sys:       {name:'Firmware Systems · 固件系统',                  domain:'ce', group:'emb_ce',    en:'Firmware Systems'},
+  realtime_embedded:  {name:'Real-Time Embedded Systems · 实时嵌入式系统', domain:'ce', group:'emb_ce',    en:'Real-Time Embedded Systems'},
+  edge_hw_platform:   {name:'Edge Hardware Platforms · 边缘硬件平台',      domain:'ce', group:'emb_ce',    en:'Edge Hardware Platforms'},
+  lowlevel_integration:{name:'Low-Level Systems Integration · 低层系统集成', domain:'ce', group:'emb_ce',  en:'Low-Level Systems Integration'},
+  fpga_compute:       {name:'FPGA-Based Computing · FPGA 计算',            domain:'ce', group:'codesign',  en:'FPGA-Based Computing'},
+  accelerator_systems:{name:'Accelerator Systems · 加速器系统',            domain:'ce', group:'codesign',  en:'Accelerator Systems'},
+  domain_arch:        {name:'Domain-Specific Architectures · 专用体系结构', domain:'ce', group:'codesign',  en:'Domain-Specific Architectures'},
+  co_optimization:    {name:'HW/SW Co-Optimization · 软硬件协同优化',      domain:'ce', group:'codesign',  en:'Co-Optimization of Hardware and Software'},
+  system_integration: {name:'System Integration · 系统集成',               domain:'ce', group:'dig_sys',   en:'System Integration'},
+  device_edge_cloud:  {name:'Device-Edge-Cloud Computing · 端边云协同',    domain:'ce', group:'dig_sys',   en:'Device-Edge-Cloud Computing'},
+  computer_interfacing:{name:'Computer Interfacing · 计算机接口',          domain:'ce', group:'dig_sys',   en:'Computer Interfacing'},
+  sensor_compute:     {name:'Sensor-Compute Systems · 传感-计算系统',       domain:'ce', group:'dig_sys',   en:'Sensor-Compute Systems'},
+  smart_devices:      {name:'Smart Devices · 智能设备',                    domain:'ce', group:'dig_sys',   en:'Smart Devices'},
+  cps_computer:       {name:'Cyber-Physical Computer Systems · 计算型信息物理系统', domain:'ce', group:'dig_sys', en:'Cyber-Physical Computer Systems'},
+  efficient_inference_hw:{name:'Efficient Inference Hardware · 高效推理硬件', domain:'ce', group:'ai_hw',  en:'Efficient Inference Hardware'},
+  training_hw:        {name:'Hardware for ML Training · 训练硬件系统',      domain:'ce', group:'ai_hw',     en:'Hardware for ML Training'},
+  sparse_hw:          {name:'Sparse / Quantized Hardware · 稀疏与量化硬件', domain:'ce', group:'ai_hw',     en:'Sparse / Quantized Hardware Systems'},
+  digital_system_design:{name:'Digital System Design · 数字系统设计',       domain:'ce', group:'dig_sys',   en:'Digital System Design'},
+  microprocessor_sys: {name:'Microprocessor Systems · 微处理器系统',       domain:'ce', group:'dig_sys',   en:'Microprocessor Systems'},
+  reconfigurable_compute:{name:'Reconfigurable Computing · 可重构计算',     domain:'ce', group:'dig_sys',   en:'Reconfigurable Computing'},
+  lowlevel_computer_design:{name:'Low-Level Computer Design · 低层计算机设计', domain:'ce', group:'dig_sys', en:'Low-Level Computer Design'}
+};
+
+Object.keys(EXTRA_DIRS).forEach(function(key) {
+  if (!DIRS[key]) DIRS[key] = EXTRA_DIRS[key];
+});
+
 
 // ═══════════════════════════════════════════════════════
 // PART 2: CAREERS (extended for new domains)
@@ -1348,15 +1537,15 @@ var CLUSTERS=[
    mid:'你对控制和嵌入式有基本兴趣，通常作为机器人或物联网研究的一部分。',
    low:'控制和嵌入式目前不是你的核心兴趣。'},
   // DS clusters
-  {id:'ds_stats',   label:'统计与因果 / Statistics & Causal',  color:'var(--ds-color)', domain:'ds',
-   keys:['stats','bayes','causal','econom','uq'],
-   high:'统计和因果推断是你的核心强项。你对「数据说了什么」的判断建立在严格的数学基础上——这在数据科学界极其稀缺。',
-   mid:'你对统计和因果有一定基础，作为分析工具在用。',
-   low:'统计方法目前不是你的核心研究兴趣。'},
+  {id:'ds_stats',   label:'统计判断 / Statistical Reasoning',  color:'var(--ds-color)', domain:'ds',
+   keys:['stats','probability','applied_stats','bayes','causal','experimentation','econom','uq','stat_modeling'],
+   high:'统计判断是你的核心强项之一。你更在意结论到底稳不稳、边界在哪、不确定性该怎么表达，而不只是“先跑一个结果”。',
+   mid:'你对统计判断和实验识别有稳定兴趣，能把它们作为分析和建模时的重要底层能力。',
+   low:'统计判断目前不是你的核心研究兴趣。'},
   {id:'ds_applied', label:'数据科学实践 / Applied DS',          color:'#f87171', domain:'ds',
-   keys:['ds_sci','ts_anal','ds_eng','data_qual','mlops','domain_ds'],
-   high:'应用数据科学是你的主战场。从数据工程到领域数据科学，你关注的是「让数据真正服务于决策和产品」。',
-   mid:'你对应用数据科学有一定偏好，把它作为支撑业务或研究的工具。',
+   keys:['ds_sci','predictive_modeling','ts_anal','decision_analytics','ds_eng','data_pipelines','data_warehouse','data_qual','mlops','domain_ds','risk_modeling','industrial_ds','financial_ds','bioinfo_ds','social_ds','mobility_ds','env_ds','health_ds','recommender_analytics','business_intel'],
+   high:'应用数据科学是你的主战场。你更关注“数据最后要怎样真正变成判断、预测、产品动作和行业方案”，不只停留在方法本身。',
+   mid:'你对应用数据科学有稳定偏好，愿意把统计、建模和工程能力一起接到真实问题里。',
    low:'应用数据科学不是你的主要兴趣，你更关注上游的建模或系统层面。'},
   // Robotics clusters
   {id:'rb_embodied',label:'具身与自主 / Embodied & Autonomous', color:'var(--rb-color)', domain:'rb',
@@ -4196,16 +4385,7 @@ function getNeutralOptionText(q) {
 
 function getNeutralOptionScore(q) {
   if (q && q.phase === 'deep') {
-    if (q.triggerDir) {
-      var single = {};
-      single[q.triggerDir] = 1;
-      return single;
-    }
-    if (q.triggerDirs && q.triggerDirs.length) {
-      var multi = {};
-      multi[q.triggerDirs[0]] = 1;
-      return multi;
-    }
+    return {};
   }
   var phase = q.phase;
   if (phase === 'ai') return {applied_ai:1};
@@ -4328,20 +4508,20 @@ function normalizeQuestionBanks() {
 // PART 5: QUIZ ENGINE (3-phase, 7 domains)
 // ═══════════════════════════════════════════════════════
 
-var scores={}, careerScores={}, answers=[], qSequence=[], curIdx=0;
+var scores={}, deepScores={}, careerScores={}, answers=[], qSequence=[], curIdx=0;
 var phaseBuilt=false, deepBuilt=false, careerBuilt=false;
 var _viewingHistorySnapshot = false;
 var _activeHistorySnapshot = null;
 var phaseActivated={anchor:true,ai:false,cs:false,ds:false,robotics:false,ee:false,ce:false,or:false,deep:false,career:false};
 var phase2Domains=[], phase2Finalists=[], primaryDomain=null, careerClustersSelected=[];
 var DOMAIN_KEYS={
-  ai:['ml','dl','repr','ssl','transfer','foundation','ml_theory','stat_learn','opt_ml','scaling','nlp','llm','ir','recsys','speech','cv','med_vision','video','vision3d','multimodal','vlm','doc_intel','generative','diffusion','creative_ai','rl','offline_rl','multiagent','planning_ai','efficient','quant','inf_opt','xai','safety','fairness','applied_ai'],
-  cs:['systems','dist_sys','sys_ai','cloud','db','stream','theory','algo','complexity','pl','formal','security','networks','graphics','geo_proc','hci','vis'],
-  ee:['elec_sys','signal','comm','info_th','control','opt_ctrl','embedded','iot','vlsi','eda','photonics'],
-  ds:['stats','bayes','ds_sci','ts_anal','causal','econom','ds_eng','data_qual','mlops','domain_ds'],
-  rb:['robotics','motion','mpc','perception','slam','embodied','vla','hri','autonomous'],
-  or:['sci_comp','optim','conv_opt','comb_opt','or_ops','scheduling','stoch','uq','game_th','dynamic_prog','comp_bio'],
-  ce:['arch','mem_sys','emb_sw','hw_sw','soc','ai_hw','npu','in_mem','fpga','logic_des']
+  ai:['ml','dl','repr','ssl','transfer','foundation','meta_learning','ml_theory','stat_learn','opt_ml','scaling','prob_ml','bayes_ml','nlp','llm','ir','search_ranking','recsys','speech','cv','visual_understanding','med_vision','video','vision3d','multimodal','vlm','multimodal_reasoning','audio_visual','doc_intel','generative','image_generation','diffusion','autoregressive','controllable_gen','content_gen','creative_ai','rl','offline_rl','imitation','multiagent','decision_uncertainty','planning_ai','efficient','model_compression','quant','distillation','inf_opt','training_eff','xai','safety','fairness','applied_ai'],
+  cs:['systems','dist_sys','sys_ai','cloud','db','storage_sys','data_mgmt','big_data','stream','theory','algo','complexity','online_algo','pl','formal','testing','security','privacy_eng','networks','wireless_net','mobile_sys','internet_arch','net_measure','graphics','geo_proc','rendering','animation','game_tech','computational_imaging','hci','ubiquitous','social_comp','interactive_sys','accessibility','human_ai','vis','sci_vis','info_vis','explain_vis'],
+  ee:['elec_sys','analog_circuits','digital_circuits','mixed_signal','hardware_proto','signal','image_signal','speech_signal','audio_signal','stat_signal','sensor_signal','comm','mobile_comm','info_th','coding_theory','comm_networks','nextgen_comm','control','opt_ctrl','dynamical_systems','autonomous_control','embedded','realtime','iot','cps','sensor_networks','edge_devices','vlsi','digital_ic','asic','low_power','eda','photonics','semiconductor_devices','optoelectronics','mems','nanoelectronics','emerging_devices'],
+  ds:['stats','probability','applied_stats','bayes','ds_sci','predictive_modeling','stat_modeling','ts_anal','causal','experimentation','econom','decision_analytics','ds_eng','data_pipelines','data_warehouse','data_qual','mlops','domain_ds','risk_modeling','industrial_ds','financial_ds','bioinfo_ds','social_ds','mobility_ds','env_ds','health_ds','recommender_analytics','business_intel'],
+  rb:['robotics','robot_learning','robot_kinematics','robot_dynamics','motion','mpc','perception','slam','localization_mapping','sensor_fusion_rb','visual_navigation','spatial_understanding','embodied','vla','hri','assistive_rb','collaborative_rb','social_rb','interactive_robot','autonomous','drones','multi_robot','field_robotics','marine_robotics','intelligent_mobility'],
+  or:['sci_comp','applied_math','numerical_analysis','comp_math','differential_eq','matrix_tensor','optim','conv_opt','nonconvex_opt','comb_opt','large_scale_opt','variational','or_ops','decision_science','resource_alloc','scheduling','revenue_opt','stoch','queueing','prob_modeling','simulation','risk_analysis','uq','game_th','mechanism_design','dynamic_prog','seq_decision','opt_for_ai','planning_uncertainty','comp_bio','comp_finance','industrial_opt','energy_modeling','transport_modeling','applied_modeling'],
+  ce:['arch','processor_arch','mem_sys','parallel_arch','hetero_arch','accelerator_arch','emb_sw','embedded_computing','firmware_sys','realtime_embedded','edge_hw_platform','lowlevel_integration','hw_sw','soc','fpga_compute','accelerator_systems','domain_arch','co_optimization','ai_hw','npu','in_mem','efficient_inference_hw','training_hw','sparse_hw','fpga','logic_des','digital_system_design','microprocessor_sys','reconfigurable_compute','system_integration','device_edge_cloud','computer_interfacing','sensor_compute','smart_devices','cps_computer','lowlevel_computer_design']
 };
 
 var PHASE2_TRACKS={
@@ -4355,7 +4535,7 @@ var PHASE2_TRACKS={
 };
 
 var PHASE2_LIMITS={1:15,2:12,3:9};
-var PHASE3_LIMIT=9;
+var PHASE3_LIMIT=12;
 
 var DEEP_DOMAIN_MAP={
   ai:['d_foundation','d_nlp_ir','d_llm','d_cv','d_sys','d_multimodal_gen','d_security','d_optim','d_ai_eval'],
@@ -4378,7 +4558,7 @@ var CAREER_DOMAIN_CLUSTER_MAP={
 };
 
 function resetAll(){
-  scores={};careerScores={};answers=[];qSequence=[];curIdx=0;
+  scores={};deepScores={};careerScores={};answers=[];qSequence=[];curIdx=0;
   _questionOptionOrderCache={};
   phaseActivated={anchor:true,ai:false,cs:false,ds:false,robotics:false,ee:false,ce:false,or:false,deep:false,career:false};
   phaseBuilt=false;deepBuilt=false;careerBuilt=false;
@@ -4425,6 +4605,102 @@ function getDeepTriggerScore(q) {
   return 0;
 }
 
+function getDeepLeafCoverageMap(dom) {
+  var coverage = {};
+  var bank = getDeepQuestionsForPrimaryDomain(dom) || [];
+  bank.forEach(function(q) {
+    (q.opts || []).forEach(function(opt) {
+      Object.keys(opt.d || {}).forEach(function(key) {
+        if (key.indexOf('career_') === 0 || NON_LEAF_DIRS[key]) return;
+        coverage[key] = (coverage[key] || 0) + 1;
+      });
+    });
+  });
+  return coverage;
+}
+
+function getDeepQuestionGroups(q, dom) {
+  var domKey = dom === 'robotics' ? 'rb' : dom;
+  var groups = {};
+  (q && q.opts || []).forEach(function(opt) {
+    Object.keys(opt.d || {}).forEach(function(key) {
+      var dir = DIRS[key];
+      if (!dir || dir.domain !== domKey || NON_LEAF_DIRS[key]) return;
+      groups[dir.group || key] = true;
+    });
+  });
+  return Object.keys(groups);
+}
+
+function getDeepQuestionLeafKeys(q, dom) {
+  var domKey = dom === 'robotics' ? 'rb' : dom;
+  var leafs = {};
+  (q && q.opts || []).forEach(function(opt) {
+    Object.keys(opt.d || {}).forEach(function(key) {
+      var dir = DIRS[key];
+      if (!dir || dir.domain !== domKey || NON_LEAF_DIRS[key]) return;
+      leafs[key] = true;
+    });
+  });
+  return Object.keys(leafs);
+}
+
+function pickBalancedDeepQuestions(dom, scoredCandidates, targetCount) {
+  var selected = [];
+  var usedLeafs = {};
+  var usedGroups = {};
+  var remaining = (scoredCandidates || []).map(function(item) {
+    return {
+      q: item.q,
+      score: item.score || 0,
+      leafs: getDeepQuestionLeafKeys(item.q, dom),
+      groups: getDeepQuestionGroups(item.q, dom)
+    };
+  });
+
+  while (selected.length < targetCount && remaining.length) {
+    var bestIdx = 0;
+    var bestScore = -Infinity;
+
+    remaining.forEach(function(item, idx) {
+      var leafNovelty = item.leafs.reduce(function(sum, leafKey) {
+        return sum + (usedLeafs[leafKey] ? 0 : 1);
+      }, 0);
+      var groupNovelty = item.groups.reduce(function(sum, groupKey) {
+        return sum + (usedGroups[groupKey] ? 0 : 1);
+      }, 0);
+      var leafRepeatPenalty = item.leafs.reduce(function(sum, leafKey) {
+        return sum + (usedLeafs[leafKey] || 0);
+      }, 0);
+      var groupRepeatPenalty = item.groups.reduce(function(sum, groupKey) {
+        return sum + (usedGroups[groupKey] || 0);
+      }, 0);
+      var rankScore =
+        leafNovelty * 8 +
+        groupNovelty * 6 +
+        Math.min(item.score, 18) * 0.08 -
+        leafRepeatPenalty * 1.65 -
+        groupRepeatPenalty * 2.25 +
+        item.leafs.length * 0.1;
+      if (rankScore > bestScore) {
+        bestScore = rankScore;
+        bestIdx = idx;
+      }
+    });
+
+    var chosen = remaining.splice(bestIdx, 1)[0];
+    selected.push(chosen);
+    chosen.leafs.forEach(function(leafKey) {
+      usedLeafs[leafKey] = (usedLeafs[leafKey] || 0) + 1;
+    });
+    chosen.groups.forEach(function(groupKey) {
+      usedGroups[groupKey] = (usedGroups[groupKey] || 0) + 1;
+    });
+  }
+
+  return selected;
+}
+
 function startQuiz(){
   // _startQuizCore is defined later in the script; call via window to be safe
   if (typeof canAccessQuiz === 'function' && canAccessQuiz()) {
@@ -4447,16 +4723,31 @@ function startQuiz(){
   }
 }
 
-function addScores(d){
+function addScores(d, multiplier, phaseKey){
   if(!d) return;
+  var mult = multiplier || 1;
+  var deepEntries = [];
   Object.keys(d).forEach(function(k){
-    var v=d[k];
+    var v=(d[k]||0) * mult;
     if(k.indexOf('career_')===0){
       careerScores[k]=(careerScores[k]||0)+v;
     } else {
       scores[k]=(scores[k]||0)+v;
+      if(phaseKey === 'deep' && v > 0) deepEntries.push([k, v]);
     }
   });
+  if(phaseKey === 'deep' && deepEntries.length){
+    deepEntries.sort(function(a,b){ return b[1]-a[1]; });
+    var top = deepEntries[0][1];
+    var keepThreshold = deepEntries[1] && deepEntries[1][1] >= top * 0.66 ? deepEntries[1][1] : null;
+    deepEntries.forEach(function(entry, idx){
+      var key = entry[0];
+      var val = entry[1];
+      if(idx === 0 || (keepThreshold !== null && val >= keepThreshold)) {
+        deepScores[key]=(deepScores[key]||0)+val;
+      }
+    });
+  }
 }
 
 function domainSum(dom, sourceScores){
@@ -4479,6 +4770,114 @@ function getPhaseDomainScores() {
     ce:domainSum('ce'),
     or:domainSum('or')
   };
+}
+
+function getEffectiveDirectionScores() {
+  var effective = {};
+  Object.keys(scores).forEach(function(key) {
+    var base = scores[key] || 0;
+    var isLeaf = !NON_LEAF_DIRS[key];
+    effective[key] = base * (isLeaf ? 0.16 : 0.58);
+  });
+  Object.keys(deepScores).forEach(function(key) {
+    effective[key] = (effective[key] || 0) + (deepScores[key] || 0) * 2.35;
+  });
+  return effective;
+}
+
+function getDeepDirectionEvidence(dom) {
+  var domKey = dom === 'robotics' ? 'rb' : dom;
+  var totals = {};
+  var hits = {};
+  answers.forEach(function(answer) {
+    var q = getQuestionById(answer.qid);
+    if (!q || q.phase !== 'deep') return;
+    (answer.selectedIdxs || []).forEach(function(idx) {
+      var opt = q.opts[idx];
+      if (!opt || !opt.d) return;
+      Object.keys(opt.d).forEach(function(key) {
+        var dir = DIRS[key];
+        if (!dir || dir.domain !== domKey || NON_LEAF_DIRS[key]) return;
+        var val = opt.d[key] || 0;
+        if (val <= 0) return;
+        totals[key] = (totals[key] || 0) + val;
+        hits[key] = (hits[key] || 0) + 1;
+      });
+    });
+  });
+  return { totals: totals, hits: hits };
+}
+
+function getPrimaryDomainDirectionScores(dom) {
+  if (!dom) return {};
+  var domKey = dom === 'robotics' ? 'rb' : dom;
+  var focused = {};
+  var leafCoverage = getDeepLeafCoverageMap(dom);
+  var deepEvidence = getDeepDirectionEvidence(dom);
+  var leafKeys = Object.keys(DIRS).filter(function(key) {
+    return DIRS[key] && DIRS[key].domain === domKey && !NON_LEAF_DIRS[key];
+  });
+  var hasDeepLeafSignal = leafKeys.some(function(key) {
+    return (deepEvidence.totals[key] || 0) > 0 || (deepScores[key] || 0) > 0;
+  });
+
+  Object.keys(DIRS).forEach(function(key) {
+    if (!DIRS[key] || DIRS[key].domain !== domKey) return;
+    var deep = deepScores[key] || 0;
+    var base = scores[key] || 0;
+    var isLeaf = !NON_LEAF_DIRS[key];
+    if (!hasDeepLeafSignal) {
+      focused[key] = isLeaf ? (deep * 2.35 + base * 0.16) : (deep * 1.15 + base * 0.58);
+      return;
+    }
+    if (isLeaf) {
+      var coverage = leafCoverage[key] || 1;
+      var coveragePenalty = 1 + Math.max(0, coverage - 4) * 0.16;
+      var total = deepEvidence.totals[key] || 0;
+      var hitCount = deepEvidence.hits[key] || 0;
+      focused[key] = ((total * 2.15) + (hitCount * 1.05) + (deep * 0.45)) / coveragePenalty;
+      return;
+    }
+    focused[key] = deep * 0.72 + base * 0.08;
+  });
+
+  return focused;
+}
+
+function getResultDirectionScores() {
+  if (!primaryDomain) return getEffectiveDirectionScores();
+  return getPrimaryDomainDirectionScores(primaryDomain);
+}
+
+function getTopFineDirectionEntries(dirEntries, limit) {
+  var maxCount = limit || 3;
+  var primaryDomainKey = primaryDomain === 'robotics' ? 'rb' : primaryDomain;
+  var leafEntries = (dirEntries || []).filter(function(entry) {
+    return DIRS[entry[0]] && !NON_LEAF_DIRS[entry[0]] &&
+      (!primaryDomainKey || DIRS[entry[0]].domain === primaryDomainKey);
+  });
+  if (!leafEntries.length) return [];
+
+  var selected = [];
+  var usedGroups = {};
+  var threshold = leafEntries[0][1] * 0.56;
+  leafEntries.forEach(function(entry) {
+    if (selected.length >= maxCount) return;
+    var dir = DIRS[entry[0]];
+    var group = dir.group || entry[0];
+    if (usedGroups[group]) return;
+    if (entry[1] < threshold) return;
+    selected.push(entry);
+    usedGroups[group] = true;
+  });
+
+  leafEntries.forEach(function(entry) {
+    if (selected.length >= maxCount) return;
+    if (selected.some(function(sel) { return sel[0] === entry[0]; })) return;
+    selected.push(entry);
+  });
+
+  return selected.slice(0, maxCount);
 }
 
 function buildBridgeQuestionFromResolvedDomains(template, bridgeDomains) {
@@ -4695,12 +5094,14 @@ function getPhase2TrackLimit(domainCount, dom) {
 function resolvePhase2Focus() {
   var phase2Scores = getPhase2DecisionScores();
   var anchorScores = getAnchorRoutingScores();
+  var anchorRanking = getRankedDomainsFromScores(anchorScores);
+  var anchorTop = anchorRanking[0] ? anchorRanking[0].dom : null;
   var ranked = (phase2Domains.length ? phase2Domains : resolvePhase2Domains()).map(function(dom) {
     return {
       dom: dom,
       score: phase2Scores[dom] || 0,
       tie: anchorScores[dom] || 0,
-      combined: (phase2Scores[dom] || 0) + (anchorScores[dom] || 0) * 0.24
+      combined: (phase2Scores[dom] || 0) + (anchorScores[dom] || 0) * 0.3
     };
   }).sort(function(a, b) {
     if (b.combined !== a.combined) return b.combined - a.combined;
@@ -4715,7 +5116,19 @@ function resolvePhase2Focus() {
     var pairTotal = ranked[0].combined + secondScore || 1;
     if (secondScore >= topScore * 0.78 && secondScore / pairTotal >= 0.34) finalists.push(ranked[1].dom);
   }
-  return { finalists: finalists, primary: finalists[0] || (ranked[0] && ranked[0].dom) || null };
+  var primary = finalists[0] || (ranked[0] && ranked[0].dom) || null;
+  if (
+    finalists.length >= 2 &&
+    anchorTop &&
+    finalists.indexOf(anchorTop) >= 0 &&
+    ranked[0] &&
+    ranked[1]
+  ) {
+    var gap = (ranked[0].combined || 0) - (ranked[1].combined || 0);
+    var closeRace = gap <= 2.5 || (ranked[1].combined >= (ranked[0].combined || 1) * 0.9);
+    if (closeRace) primary = anchorTop;
+  }
+  return { finalists: finalists, primary: primary };
 }
 
 function getDeepQuestionsForPrimaryDomain(dom) {
@@ -4728,11 +5141,12 @@ function getDeepQuestionsForPrimaryDomain(dom) {
 }
 
 function getCareerClustersForPrimaryDomain(dom) {
+  var effectiveScores = getResultDirectionScores();
   var relevant = (CAREER_DOMAIN_CLUSTER_MAP[dom] || Object.keys(CAREER_CLUSTER_TRIGGERS)).slice();
   var ranked = relevant.map(function(key) {
     var cfg = CAREER_CLUSTER_TRIGGERS[key];
     var sum = 0;
-    (cfg.dirs || []).forEach(function(dirKey) { sum += (scores[dirKey] || 0); });
+    (cfg.dirs || []).forEach(function(dirKey) { sum += (effectiveScores[dirKey] || scores[dirKey] || 0); });
     return { key: key, score: sum, threshold: cfg.threshold || 10 };
   }).sort(function(a, b) {
     return b.score - a.score;
@@ -4755,6 +5169,87 @@ function appendQuestionsUnique(list) {
     if (!q || !q.id) return;
     var exists = qSequence.some(function(existing) { return existing && existing.id === q.id; });
     if (!exists) qSequence.push(q);
+  });
+}
+
+function getMustBranchDeepQuestions(questions) {
+  return (questions || []).filter(function(q) {
+    return !!(q && q.mustBranch);
+  }).sort(function(a, b) {
+    return (a.branchOrder || 99) - (b.branchOrder || 99);
+  });
+}
+
+function getDomainLeafScoreSnapshot(dom) {
+  var domKey = dom === 'robotics' ? 'rb' : dom;
+  var snapshot = {};
+  Object.keys(scores || {}).forEach(function(key) {
+    if (!DIRS[key] || DIRS[key].domain !== domKey || NON_LEAF_DIRS[key]) return;
+    snapshot[key] = (snapshot[key] || 0) + (scores[key] || 0);
+  });
+  return snapshot;
+}
+
+function getDeepSeedBranchCount(dom, mandatoryQuestions) {
+  var total = (mandatoryQuestions || []).length;
+  if (!total) return 0;
+  if (dom === 'ai') return Math.min(total, 3);
+  return Math.min(total, 3);
+}
+
+function pickDeferredMustBranchQuestions(dom, mandatoryQuestions, seedCount, limit) {
+  var deferred = (mandatoryQuestions || []).slice(seedCount);
+  if (!deferred.length || !limit) return [];
+  var leafSnapshot = getDomainLeafScoreSnapshot(dom);
+  var groupScores = {};
+  Object.keys(leafSnapshot).forEach(function(key) {
+    var dir = DIRS[key];
+    if (!dir) return;
+    var group = dir.group || key;
+    groupScores[group] = (groupScores[group] || 0) + leafSnapshot[key];
+  });
+  return deferred.map(function(q) {
+    var triggerScore = (q.triggerDirs || []).reduce(function(sum, key) {
+      var dir = DIRS[key];
+      var group = dir ? (dir.group || key) : key;
+      return sum + (leafSnapshot[key] || 0) + (groupScores[group] || 0) * 0.35;
+    }, 0);
+    return { q: q, score: triggerScore };
+  }).sort(function(a, b) {
+    return b.score - a.score;
+  }).slice(0, limit).map(function(item) {
+    return item.q;
+  });
+}
+
+function pickAiMustBranchQuestions(mandatoryQuestions) {
+  var ordered = (mandatoryQuestions || []).slice().sort(function(a, b) {
+    return (a.branchOrder || 99) - (b.branchOrder || 99);
+  });
+  var selected = ordered.slice(0, 3);
+  var byOrder = {};
+  ordered.forEach(function(q) {
+    byOrder[q.branchOrder || 99] = q;
+  });
+  if (byOrder[4]) selected.push(byOrder[4]);
+  if (byOrder[7]) selected.push(byOrder[7]);
+  var bridgeChoice = [byOrder[5], byOrder[6]].filter(Boolean);
+  if (bridgeChoice.length === 1) {
+    selected.push(bridgeChoice[0]);
+  } else if (bridgeChoice.length === 2) {
+    var leafSnapshot = getDomainLeafScoreSnapshot('ai');
+    var scored = bridgeChoice.map(function(q) {
+      var score = (q.triggerDirs || []).reduce(function(sum, key) {
+        return sum + (leafSnapshot[key] || 0);
+      }, 0);
+      return { q: q, score: score };
+    }).sort(function(a, b) {
+      return b.score - a.score;
+    });
+    selected.push(scored[0].q);
+  }
+  return selected.filter(function(q, idx) {
+    return q && selected.indexOf(q) === idx;
   });
 }
 
@@ -4789,19 +5284,51 @@ function buildDeepSequence(){
   var focus = resolvePhase2Focus();
   phase2Finalists = focus.finalists;
   primaryDomain = focus.primary;
-  var candidates = getDeepQuestionsForPrimaryDomain(primaryDomain).sort(function(a, b) {
-    return getDeepTriggerScore(b) - getDeepTriggerScore(a);
+  var domainQuestions = getDeepQuestionsForPrimaryDomain(primaryDomain);
+  var mandatoryQuestions = getMustBranchDeepQuestions(domainQuestions);
+  var scoredCandidates = domainQuestions.filter(function(q) {
+    return !q.mustBranch;
+  }).map(function(q) {
+    return { q: q, score: getDeepTriggerScore(q) };
+  }).sort(function(a, b) {
+    return b.score - a.score;
   });
 
-  if (!candidates.length) {
-    candidates = DEEP_Qs.map(function(q) {
+  if (!domainQuestions.length) {
+    mandatoryQuestions = getMustBranchDeepQuestions(DEEP_Qs);
+    scoredCandidates = DEEP_Qs.filter(function(q) {
+      return !q.mustBranch;
+    }).map(function(q) {
       return { q: q, score: getDeepTriggerScore(q) };
     }).sort(function(a, b) {
       return b.score - a.score;
-    }).slice(0, PHASE3_LIMIT).map(function(item) { return item.q; });
+    });
   }
 
-  appendQuestionsUnique(candidates.slice(0, candidates.length));
+  var targetCount = Math.min(PHASE3_LIMIT, mandatoryQuestions.length + scoredCandidates.length);
+  var selectedMandatory;
+  if (primaryDomain === 'ai') {
+    selectedMandatory = pickAiMustBranchQuestions(mandatoryQuestions).slice(0, targetCount);
+  } else {
+    var seedCount = getDeepSeedBranchCount(primaryDomain, mandatoryQuestions);
+    selectedMandatory = mandatoryQuestions.slice(0, seedCount);
+    var extraMandatoryCap = 2;
+    var extraMandatoryLimit = Math.max(0, Math.min(extraMandatoryCap, targetCount - selectedMandatory.length));
+    if (extraMandatoryLimit > 0) {
+      selectedMandatory = selectedMandatory.concat(
+        pickDeferredMustBranchQuestions(primaryDomain, mandatoryQuestions, seedCount, extraMandatoryLimit)
+      );
+    }
+  }
+  var selected = selectedMandatory.map(function(q) {
+    return { q: q, score: 999 };
+  });
+  var remainingCount = Math.max(0, targetCount - selected.length);
+  if (remainingCount > 0) {
+    selected = selected.concat(pickBalancedDeepQuestions(primaryDomain, scoredCandidates, remainingCount));
+  }
+
+  appendQuestionsUnique(selected.map(function(item) { return item.q; }));
   updateProgress();
 }
 
@@ -4972,10 +5499,11 @@ function buildCareerSequence(){
 
   careerClustersSelected = getCareerClustersForPrimaryDomain(primaryDomain);
   if (!careerClustersSelected.length) {
+    var effectiveScores = getResultDirectionScores();
     careerClustersSelected = Object.keys(CAREER_CLUSTER_TRIGGERS).sort(function(a, b) {
       var aScore = 0, bScore = 0;
-      CAREER_CLUSTER_TRIGGERS[a].dirs.forEach(function(dk){ aScore += (scores[dk] || 0); });
-      CAREER_CLUSTER_TRIGGERS[b].dirs.forEach(function(dk){ bScore += (scores[dk] || 0); });
+      CAREER_CLUSTER_TRIGGERS[a].dirs.forEach(function(dk){ aScore += (effectiveScores[dk] || scores[dk] || 0); });
+      CAREER_CLUSTER_TRIGGERS[b].dirs.forEach(function(dk){ bScore += (effectiveScores[dk] || scores[dk] || 0); });
       return bScore - aScore;
     }).slice(0, 1);
   }
@@ -4993,7 +5521,13 @@ function commitAndNext(isMulti){
   var existingAns=answers.find(function(a){return a.qid===q.id;});
   var sel=existingAns?existingAns.selectedIdxs:[];
   if(existingAns&&!existingAns.scored){
-    sel.forEach(function(i){ addScores(q.opts[i].d); });
+    var phaseMultiplier = {
+      anchor: 1,
+      bridge: 1.12,
+      deep: 1.85,
+      career: 1
+    }[q.phase] || 1;
+    sel.forEach(function(i){ addScores(q.opts[i].d, phaseMultiplier, q.phase); });
     existingAns.scored=true;
   }
   var prevPhase=q.phase;
@@ -5081,8 +5615,10 @@ function showResults(options){
   }
 
   // ── Sort directions ──
+  var effectiveScores = getResultDirectionScores();
   var dirEntries=Object.keys(scores).filter(function(k){return DIRS[k];})
-    .map(function(k){return[k,scores[k]];})
+    .map(function(k){return[k,(effectiveScores[k] || 0)]})
+    .filter(function(entry){ return entry[1] > 0; })
     .sort(function(a,b){return b[1]-a[1];});
 
   var primaryDomainDirKey = {
@@ -5094,10 +5630,11 @@ function showResults(options){
     ce:'ce',
     or:'or'
   }[primaryDomain] || null;
-  var primaryDomainTopDir = dirEntries.find(function(e){
-    return !UMBRELLA_DIRS[e[0]] && DIRS[e[0]] && DIRS[e[0]].domain === primaryDomainDirKey;
+  var topFineEntries = getTopFineDirectionEntries(dirEntries, 3);
+  var primaryDomainTopDir = topFineEntries[0] || dirEntries.find(function(e){
+    return !NON_LEAF_DIRS[e[0]] && DIRS[e[0]] && DIRS[e[0]].domain === primaryDomainDirKey;
   });
-  var topDir=(primaryDomainTopDir || dirEntries.find(function(e){return !UMBRELLA_DIRS[e[0]];}) || dirEntries[0] || [null])[0];
+  var topDir=(primaryDomainTopDir || dirEntries.find(function(e){return !NON_LEAF_DIRS[e[0]];}) || dirEntries[0] || [null])[0];
   var topDirObj=topDir?DIRS[topDir]:null;
   var primaryDomainLabel = {
     ai:'AI / ML',
@@ -5148,13 +5685,29 @@ function showResults(options){
     heroDomsEl.appendChild(chip);
   });
 
+  var heroTop3El=document.getElementById('heroTop3');
+  if(heroTop3El){
+    heroTop3El.innerHTML='';
+    topFineEntries.forEach(function(entry, idx){
+      var dir = DIRS[entry[0]];
+      if(!dir) return;
+      var chip=document.createElement('div');
+      chip.className='hero-top3-chip';
+      chip.innerHTML='<span class="hero-top3-rank">Top '+(idx+1)+'</span><span class="hero-top3-name">'+dir.name+'</span>';
+      heroTop3El.appendChild(chip);
+    });
+  }
+
   document.getElementById('heroDir').textContent=topDirObj?topDirObj.name:'暂无明确方向';
   var topDirDetail=DIR_DETAILS[topDir];
   var topDirDesc=topDirDetail&&topDirDetail.scene?topDirDetail.scene.split('。')[0]+'。':'';
+  var top3Names = topFineEntries.map(function(entry){ return DIRS[entry[0]] ? DIRS[entry[0]].name : ''; }).filter(Boolean);
   document.getElementById('heroTagline').innerHTML=topDirObj?
-    '<strong>'+topDirObj.name+'</strong>是你得分最高的方向。'+(topDirDesc||'')
-    +(primaryDomainLabel?'<br>在第二部分的收敛里，你的主方向被判定为 <strong>'+primaryDomainLabel+'</strong>。':'')
-    +'<br>以下是基于你所有答案的完整分析。':
+    '<strong>'+topDirObj.name+'</strong> 是当前最靠前的细分方向。'
+    +(top3Names.length > 1 ? '<br>同时，<strong>'+top3Names.slice(1).join('</strong> 和 <strong>')+'</strong> 也保持了明显信号，建议一起看作你的候选方向。' : '')
+    +(topDirDesc?'<br>'+topDirDesc:'')
+    +(primaryDomainLabel?'<br>前两部分收敛后，你的主方向被判定为 <strong>'+primaryDomainLabel+'</strong>。':'')
+    +'<br>下面会按 Top 3 细分方向来展开这份结果。':
     '你的偏好分布相当均匀，以下是详细的分布分析。';
 
   // ── 01 PROFILE ──
@@ -5329,19 +5882,21 @@ function buildProfile(domainSum,totalDom){
 
 
 function buildDirDetails(dirEntries){
-  var top4=dirEntries.filter(function(e){
-    return DIRS[e[0]] && !UMBRELLA_DIRS[e[0]];
-  }).slice(0,4);
+  var top3=getTopFineDirectionEntries(dirEntries, 3);
   var grid=document.getElementById('dirDetailGrid');
   if(!grid) return;
   grid.innerHTML='';
-  if(top4.length===0){ grid.innerHTML='<p style="color:var(--dim);font-size:13px;">完成更多题目后将显示详细方向分析。</p>'; return; }
+  if(top3.length===0){ grid.innerHTML='<p style="color:var(--dim);font-size:13px;">完成更多题目后将显示详细方向分析。</p>'; return; }
+  var intro=document.getElementById('dirDetailIntro');
+  if(intro){
+    intro.textContent='以下 3 个方向不是“随便列几个相近词”，而是当前最贴近你的细分候选。它们通常代表同一大方向下相邻但不同的长期投入路线。';
+  }
   
   var domLabels={ai:'AI / ML',cs:'CS',ds:'数据科学',rb:'Robotics',or:'Math / OR',ee:'ECE / EE',ce:'CE'};
   var domColors={ai:'var(--ai-color)',cs:'var(--cs-color)',ds:'var(--ds-color)',
                  rb:'var(--rb-color)',or:'var(--or-color)',ee:'var(--ee-color)',ce:'var(--ce-color)'};
   
-  top4.forEach(function(entry,i){
+  top3.forEach(function(entry,i){
     var k=entry[0];
     var dir=DIRS[k];
     var det=DIR_DETAILS[k];
@@ -5357,6 +5912,7 @@ function buildDirDetails(dirEntries){
     var exampleText = det ? det.example : '';
     
     card.innerHTML=
+      '<div class="ddc-rank">Top '+(i+1)+'</div>'
       '<div class="ddc-header">'
       +'<div class="ddc-name">'+(i===0?'🏆 ':'')+dir.name+'</div>'
       +'<span class="ddc-domain ddc-domain-'+dir.domain+'" style="color:'+domColor+'">'+domLabel+'</span>'
@@ -5388,7 +5944,7 @@ function buildMajors(domainSum,totalDom,dirEntries){
     cs:       dom('cs')*1.25 + g('systems')+g('theory')+g('algo')+g('pl')+g('security')+g('dist_sys'),
     ece:      dom('ee')*1.25 + g('vlsi')+g('embedded')+g('control')+g('signal')+g('comm')+g('info_th'),
     ce:       dom('ce')*1.25 + g('arch')+g('hw_sw')+g('soc')+g('ai_hw')+g('npu')+g('fpga'),
-    ds_stat:  dom('ds')*1.25 + g('stats')+g('causal')+g('bayes')+g('ds_sci')+g('econom'),
+    ds_stat:  dom('ds')*1.25 + g('stats')+g('probability')+g('applied_stats')+g('bayes')+g('causal')+g('experimentation')+g('econom')+g('uq')+g('ds_sci')+g('predictive_modeling')+g('decision_analytics'),
     robotics: dom('rb')*1.25 + g('robotics')+g('embodied')+g('autonomous')+g('perception')+g('slam'),
     or_math:  dom('or')*1.25 + g('optim')+g('or_ops')+g('game_th')+g('stoch')+g('sci_comp')+g('comb_opt'),
     swe:      dom('cs')*0.95 + g('dist_sys')+g('sys_ai')+g('mlops')+g('db')+g('cloud')
@@ -5411,9 +5967,9 @@ function buildMajors(domainSum,totalDom,dirEntries){
       salary:'美国体系结构岗 $25–60万/年；AI 加速器方向（Nvidia/Apple/AMD）可达 $80–130万+',
       tags:['Computer Architecture','AI Accelerators & NPU','HW-SW Co-Design','FPGA','In-Memory Computing']},
     ds_stat:{abbr:'DS / Stats',name:'数据科学 / 统计学 · Data Science / Statistics',
-      desc:'因果推断、贝叶斯方法、实验设计、数据工程——DS/Statistics 是「让数据真正说话」的学科。比 AI/ML 更关注统计严谨性，量化金融和政策研究是典型出口。',
+      desc:'统计判断、预测建模、实验评估、数据工程和行业分析——DS/Statistics 关心的是“怎样把复杂数据变成更稳、更可执行的判断”。它不只等于因果推断，也包括贝叶斯、时间序列、风险建模、实验平台和领域数据科学。',
       salary:'DS 初级 $14–22万/年；Senior FAANG DS $25–45万；量化研究员 $50–150万+',
-      tags:['Causal Inference & Experimentation','Bayesian Statistics','Data Engineering & MLOps','Domain DS','Time Series']},
+      tags:['Statistical Reasoning','Predictive Modeling & Time Series','Experimentation & Evaluation','Data Engineering & MLOps','Domain Data Science']},
     robotics:{abbr:'Robotics',name:'机器人学 / 自主系统 · Robotics & Autonomous Systems',
       desc:'感知、规划、控制、学习——机器人学是最综合的工程学科。CMU Robotics、MIT CSAIL、Stanford ILIAD 是代表性项目。自动驾驶、智能制造、医疗机器人需求持续高涨。',
       salary:'美国机器人工程师 $25–60万/年；自动驾驶公司 $30–80万总包；国内大疆/华为智驾/比亚迪 SP 25–50万人民币',
@@ -5496,7 +6052,9 @@ function buildDirectionBars(dirEntries,activeDomains){
   });
 
   // Direction bars - top 12
-  var top12=dirEntries.slice(0,12);
+  var top12=dirEntries.filter(function(entry){
+    return !NON_LEAF_DIRS[entry[0]];
+  }).slice(0,12);
   var maxScore=top12.length>0?top12[0][1]:1;
   // Show umbrella dir scores as context chips
   var umbrellaEl=document.getElementById('umbrellaRow');
@@ -5579,15 +6137,215 @@ var CAREER_ROLE_TO_PATHS = {
   decision_sci:['career_or_scientist','career_data_scientist']
 };
 
+var DIR_TO_CAREER_PATHS = {
+  stat_learn:['career_research_scientist','career_academia','career_data_scientist'],
+  opt_ml:['career_research_scientist','career_optimization','career_ml_engineer'],
+  scaling:['career_research_scientist','career_foundation_model','career_efficient_ai'],
+  meta_learning:['career_research_scientist','career_academia','career_ml_engineer'],
+  prob_ml:['career_research_scientist','career_data_scientist','career_quant'],
+  bayes_ml:['career_research_scientist','career_data_scientist','career_quant'],
+  search_ranking:['career_nlp_engineer','career_ml_engineer','career_data_scientist'],
+  visual_understanding:['career_cv_engineer','career_research_scientist','career_perception_engineer'],
+  image_generation:['career_generative_ai','career_cv_engineer','career_foundation_model'],
+  multimodal_reasoning:['career_foundation_model','career_llm_engineer','career_research_scientist'],
+  audio_visual:['career_cv_engineer','career_generative_ai','career_perception_engineer'],
+  autoregressive:['career_llm_engineer','career_generative_ai','career_foundation_model'],
+  controllable_gen:['career_generative_ai','career_llm_engineer','career_research_scientist'],
+  content_gen:['career_generative_ai','career_tech_pm','career_llm_engineer'],
+  imitation:['career_robot_learning','career_rl_engineer','career_robotics_engineer'],
+  decision_uncertainty:['career_rl_engineer','career_quant','career_or_scientist'],
+  model_compression:['career_efficient_ai','career_ai_hardware','career_ml_systems'],
+  distillation:['career_efficient_ai','career_ml_engineer','career_foundation_model'],
+  training_eff:['career_efficient_ai','career_foundation_model','career_ml_systems'],
+  storage_sys:['career_database','career_systems_engineer','career_data_engineer'],
+  data_mgmt:['career_database','career_data_engineer','career_systems_engineer'],
+  big_data:['career_data_engineer','career_database','career_mlops'],
+  online_algo:['career_optimization','career_data_scientist','career_quant'],
+  testing:['career_systems_engineer','career_compiler_pl','career_mlops'],
+  privacy_eng:['career_security','career_hci_ux','career_domain_ds'],
+  wireless_net:['career_comm_engineer','career_systems_engineer','career_embedded'],
+  mobile_sys:['career_systems_engineer','career_embedded','career_comm_engineer'],
+  internet_arch:['career_comm_engineer','career_systems_engineer','career_security'],
+  net_measure:['career_systems_engineer','career_comm_engineer','career_mlops'],
+  rendering:['career_hci_ux','career_cv_engineer','career_systems_engineer'],
+  animation:['career_hci_ux','career_cv_engineer','career_systems_engineer'],
+  game_tech:['career_hci_ux','career_systems_engineer','career_compiler_pl'],
+  computational_imaging:['career_cv_engineer','career_signal_processing','career_research_scientist'],
+  ubiquitous:['career_hci_ux','career_embedded','career_robotics_engineer'],
+  social_comp:['career_hci_ux','career_domain_ds','career_data_scientist'],
+  interactive_sys:['career_hci_ux','career_systems_engineer','career_tech_pm'],
+  accessibility:['career_hci_ux','career_tech_pm','career_domain_ds'],
+  human_ai:['career_hci_ux','career_tech_pm','career_llm_engineer'],
+  sci_vis:['career_hci_ux','career_sci_computing','career_data_scientist'],
+  info_vis:['career_hci_ux','career_data_scientist','career_domain_ds'],
+  explain_vis:['career_hci_ux','career_causal_scientist','career_data_scientist'],
+  analog_circuits:['career_vlsi','career_signal_processing','career_embedded'],
+  digital_circuits:['career_vlsi','career_ai_hardware','career_embedded'],
+  mixed_signal:['career_vlsi','career_signal_processing','career_embedded'],
+  hardware_proto:['career_embedded','career_vlsi','career_robotics_engineer'],
+  image_signal:['career_signal_processing','career_perception_engineer','career_cv_engineer'],
+  speech_signal:['career_signal_processing','career_nlp_engineer','career_llm_engineer'],
+  audio_signal:['career_signal_processing','career_nlp_engineer','career_generative_ai'],
+  stat_signal:['career_signal_processing','career_perception_engineer','career_research_scientist'],
+  sensor_signal:['career_signal_processing','career_perception_engineer','career_robotics_engineer'],
+  mobile_comm:['career_comm_engineer','career_embedded','career_systems_engineer'],
+  coding_theory:['career_comm_engineer','career_research_scientist','career_academia'],
+  comm_networks:['career_comm_engineer','career_systems_engineer','career_embedded'],
+  nextgen_comm:['career_comm_engineer','career_research_scientist','career_academia'],
+  dynamical_systems:['career_control_systems','career_sci_computing','career_robotics_engineer'],
+  autonomous_control:['career_control_systems','career_autonomous_driving','career_robotics_engineer'],
+  cps:['career_embedded','career_control_systems','career_robotics_engineer'],
+  realtime:['career_embedded','career_control_systems','career_systems_engineer'],
+  sensor_networks:['career_embedded','career_comm_engineer','career_systems_engineer'],
+  edge_devices:['career_embedded','career_ai_hardware','career_ml_systems'],
+  digital_ic:['career_vlsi','career_ai_hardware','career_cpu_architect'],
+  asic:['career_vlsi','career_ai_hardware','career_cpu_architect'],
+  low_power:['career_vlsi','career_ai_hardware','career_embedded'],
+  semiconductor_devices:['career_vlsi','career_ai_hardware','career_research_scientist'],
+  optoelectronics:['career_signal_processing','career_vlsi','career_research_scientist'],
+  mems:['career_vlsi','career_robotics_engineer','career_signal_processing'],
+  nanoelectronics:['career_vlsi','career_ai_hardware','career_research_scientist'],
+  emerging_devices:['career_ai_hardware','career_vlsi','career_research_scientist'],
+  probability:['career_quant','career_data_scientist','career_research_scientist'],
+  applied_stats:['career_data_scientist','career_causal_scientist','career_domain_ds'],
+  predictive_modeling:['career_data_scientist','career_domain_ds','career_ml_engineer'],
+  stat_modeling:['career_data_scientist','career_causal_scientist','career_quant'],
+  experimentation:['career_causal_scientist','career_data_scientist','career_tech_pm'],
+  decision_analytics:['career_or_scientist','career_data_scientist','career_domain_ds'],
+  data_pipelines:['career_data_engineer','career_mlops','career_database'],
+  data_warehouse:['career_data_engineer','career_database','career_mlops'],
+  risk_modeling:['career_quant','career_domain_ds','career_data_scientist'],
+  industrial_ds:['career_domain_ds','career_data_scientist','career_or_scientist'],
+  financial_ds:['career_quant','career_data_scientist','career_domain_ds'],
+  bioinfo_ds:['career_domain_ds','career_data_scientist','career_causal_scientist'],
+  social_ds:['career_domain_ds','career_causal_scientist','career_data_scientist'],
+  mobility_ds:['career_domain_ds','career_or_scientist','career_data_scientist'],
+  env_ds:['career_domain_ds','career_data_scientist','career_sci_computing'],
+  health_ds:['career_domain_ds','career_causal_scientist','career_data_scientist'],
+  recommender_analytics:['career_data_scientist','career_ml_engineer','career_mlops'],
+  business_intel:['career_data_scientist','career_data_engineer','career_tech_pm'],
+  robot_learning:['career_robot_learning','career_robotics_engineer','career_research_scientist'],
+  robot_kinematics:['career_robotics_engineer','career_control_systems','career_autonomous_driving'],
+  robot_dynamics:['career_robotics_engineer','career_control_systems','career_sci_computing'],
+  localization_mapping:['career_perception_engineer','career_robotics_engineer','career_autonomous_driving'],
+  sensor_fusion_rb:['career_perception_engineer','career_robotics_engineer','career_autonomous_driving'],
+  visual_navigation:['career_perception_engineer','career_autonomous_driving','career_robotics_engineer'],
+  spatial_understanding:['career_perception_engineer','career_robot_learning','career_cv_engineer'],
+  assistive_rb:['career_hri','career_robotics_engineer','career_domain_ds'],
+  collaborative_rb:['career_hri','career_robotics_engineer','career_control_systems'],
+  social_rb:['career_hri','career_robotics_engineer','career_tech_pm'],
+  interactive_robot:['career_hri','career_robotics_engineer','career_tech_pm'],
+  drones:['career_autonomous_driving','career_robotics_engineer','career_control_systems'],
+  multi_robot:['career_robotics_engineer','career_robot_learning','career_or_scientist'],
+  field_robotics:['career_robotics_engineer','career_autonomous_driving','career_perception_engineer'],
+  marine_robotics:['career_robotics_engineer','career_control_systems','career_perception_engineer'],
+  intelligent_mobility:['career_autonomous_driving','career_robotics_engineer','career_perception_engineer'],
+  applied_math:['career_sci_computing','career_quant','career_research_scientist'],
+  numerical_analysis:['career_sci_computing','career_optimization','career_research_scientist'],
+  comp_math:['career_sci_computing','career_quant','career_optimization'],
+  differential_eq:['career_sci_computing','career_control_systems','career_research_scientist'],
+  matrix_tensor:['career_sci_computing','career_optimization','career_ai_hardware'],
+  nonconvex_opt:['career_optimization','career_research_scientist','career_ml_engineer'],
+  large_scale_opt:['career_optimization','career_or_scientist','career_ml_systems'],
+  variational:['career_optimization','career_sci_computing','career_research_scientist'],
+  decision_science:['career_or_scientist','career_data_scientist','career_domain_ds'],
+  resource_alloc:['career_or_scientist','career_optimization','career_tech_pm'],
+  revenue_opt:['career_game_theory','career_or_scientist','career_quant'],
+  queueing:['career_or_scientist','career_systems_engineer','career_sci_computing'],
+  prob_modeling:['career_quant','career_data_scientist','career_research_scientist'],
+  simulation:['career_sci_computing','career_or_scientist','career_robotics_engineer'],
+  risk_analysis:['career_quant','career_or_scientist','career_domain_ds'],
+  seq_decision:['career_or_scientist','career_rl_engineer','career_robot_learning'],
+  mechanism_design:['career_game_theory','career_quant','career_or_scientist'],
+  opt_for_ai:['career_optimization','career_ml_systems','career_ai_hardware'],
+  planning_uncertainty:['career_or_scientist','career_autonomous_driving','career_robotics_engineer'],
+  comp_finance:['career_quant','career_or_scientist','career_data_scientist'],
+  industrial_opt:['career_optimization','career_or_scientist','career_domain_ds'],
+  energy_modeling:['career_sci_computing','career_or_scientist','career_domain_ds'],
+  transport_modeling:['career_or_scientist','career_autonomous_driving','career_domain_ds'],
+  applied_modeling:['career_sci_computing','career_domain_ds','career_optimization'],
+  processor_arch:['career_cpu_architect','career_ai_hardware','career_hw_sw_codesign'],
+  parallel_arch:['career_cpu_architect','career_ai_hardware','career_hw_sw_codesign'],
+  hetero_arch:['career_cpu_architect','career_ai_hardware','career_hw_sw_codesign'],
+  accelerator_arch:['career_ai_hardware','career_cpu_architect','career_hw_sw_codesign'],
+  embedded_computing:['career_embedded','career_hw_sw_codesign','career_control_systems'],
+  firmware_sys:['career_embedded','career_hw_sw_codesign','career_systems_engineer'],
+  realtime_embedded:['career_embedded','career_control_systems','career_systems_engineer'],
+  edge_hw_platform:['career_embedded','career_ai_hardware','career_hw_sw_codesign'],
+  lowlevel_integration:['career_embedded','career_hw_sw_codesign','career_systems_engineer'],
+  fpga_compute:['career_hw_sw_codesign','career_ai_hardware','career_vlsi'],
+  accelerator_systems:['career_hw_sw_codesign','career_ai_hardware','career_cpu_architect'],
+  domain_arch:['career_ai_hardware','career_cpu_architect','career_hw_sw_codesign'],
+  co_optimization:['career_hw_sw_codesign','career_ai_hardware','career_cpu_architect'],
+  system_integration:['career_hw_sw_codesign','career_embedded','career_systems_engineer'],
+  device_edge_cloud:['career_hw_sw_codesign','career_embedded','career_systems_engineer'],
+  computer_interfacing:['career_hw_sw_codesign','career_embedded','career_systems_engineer'],
+  sensor_compute:['career_embedded','career_perception_engineer','career_robotics_engineer'],
+  smart_devices:['career_embedded','career_hw_sw_codesign','career_tech_pm'],
+  cps_computer:['career_embedded','career_control_systems','career_robotics_engineer'],
+  efficient_inference_hw:['career_ai_hardware','career_efficient_ai','career_ml_systems'],
+  training_hw:['career_ai_hardware','career_cpu_architect','career_foundation_model'],
+  sparse_hw:['career_ai_hardware','career_efficient_ai','career_hw_sw_codesign'],
+  digital_system_design:['career_hw_sw_codesign','career_vlsi','career_cpu_architect'],
+  microprocessor_sys:['career_cpu_architect','career_embedded','career_hw_sw_codesign'],
+  reconfigurable_compute:['career_hw_sw_codesign','career_ai_hardware','career_vlsi'],
+  lowlevel_computer_design:['career_cpu_architect','career_hw_sw_codesign','career_embedded']
+};
+
+function getCareerTopFineEntries(limit) {
+  var effectiveScores = getResultDirectionScores();
+  var rankedEntries = Object.keys(effectiveScores)
+    .map(function(key) { return [key, effectiveScores[key] || 0]; })
+    .filter(function(entry) {
+      return entry[1] > 0 && DIRS[entry[0]] && !NON_LEAF_DIRS[entry[0]];
+    })
+    .sort(function(a, b) { return b[1] - a[1]; });
+  return getTopFineDirectionEntries(rankedEntries, limit || 3);
+}
+
 function getCareerBaseScores() {
+  var effectiveScores = getResultDirectionScores();
+  var topFineEntries = getCareerTopFineEntries(3);
+  var topFineWeights = {};
+  topFineEntries.forEach(function(entry, idx) {
+    topFineWeights[entry[0]] = [1.55, 1.2, 1.0][idx] || 0.9;
+  });
   var combined = {};
   Object.keys(CAREERS).forEach(function(ck){
     var c = CAREERS[ck];
     var score = 0;
-    if(c.score_dirs) c.score_dirs.forEach(function(dk){ score += (scores[dk] || 0) * 0.4; });
+    if(c.score_dirs) c.score_dirs.forEach(function(dk){
+      var dirScore = effectiveScores[dk] || scores[dk] || 0;
+      if (!dirScore) return;
+      var weight = topFineWeights[dk] ? (0.44 * topFineWeights[dk]) : (NON_LEAF_DIRS[dk] ? 0.08 : 0.04);
+      score += dirScore * weight;
+    });
     combined[ck] = score;
   });
+  var fineBoosts = getFineDirectionCareerBoosts();
+  Object.keys(fineBoosts).forEach(function(ck) {
+    combined[ck] = (combined[ck] || 0) + fineBoosts[ck];
+  });
   return combined;
+}
+
+function getFineDirectionCareerBoosts() {
+  var boosts = {};
+  var rankedFineDirs = getCareerTopFineEntries(3).filter(function(entry) {
+    return DIR_TO_CAREER_PATHS[entry[0]];
+  });
+
+  rankedFineDirs.forEach(function(entry, rank) {
+    var dirKey = entry[0];
+    var dirScore = entry[1];
+    var rankWeight = [3.35, 2.35, 1.7][rank] || 1.15;
+    (DIR_TO_CAREER_PATHS[dirKey] || []).forEach(function(ck, idx) {
+      var pathWeight = idx === 0 ? 2.15 : (idx === 1 ? 1.35 : 0.82);
+      boosts[ck] = (boosts[ck] || 0) + dirScore * rankWeight * pathWeight;
+    });
+  });
+
+  return boosts;
 }
 
 function getCareerLeafScores(options) {
@@ -5826,18 +6584,6 @@ document.addEventListener('keydown', function(e) {
 var _origBuildDirDetails = buildDirDetails;
 buildDirDetails = function(dirEntries) {
   _origBuildDirDetails(dirEntries);
-  var cards = document.querySelectorAll('.dir-detail-card');
-  cards.forEach(function(card, i) {
-    var key = dirEntries.filter(function(e){ return !UMBRELLA_DIRS[e[0]]; })[i];
-    if (!key) return;
-    card.classList.add('clickable');
-    card.style.cursor = 'pointer';
-    var trigger = document.createElement('div');
-    trigger.className = 'dir-modal-trigger';
-    trigger.innerHTML = '了解更多 →';
-    card.appendChild(trigger);
-    (function(k){ card.addEventListener('click', function(){ openDirModal(k); }); })(key[0]);
-  });
 };
 
 // ── PHASE TRANSITION OVERLAY ──
@@ -6236,6 +6982,7 @@ function createHistorySnapshot() {
     topDir: (document.getElementById('heroDir') || {}).textContent || '—',
     topDomains: (document.getElementById('heroDomains') || {}).textContent || '—',
     scores: JSON.parse(JSON.stringify(scores || {})),
+    deepScores: JSON.parse(JSON.stringify(deepScores || {})),
     careerScores: JSON.parse(JSON.stringify(careerScores || {})),
     answers: JSON.parse(JSON.stringify(answers || [])),
     qSequenceIds: (qSequence || []).map(function(q) { return q.id; })
@@ -6268,6 +7015,7 @@ function restoreHistorySnapshot(index) {
   normalizeQuestionBanks();
   resetAll();
   scores = JSON.parse(JSON.stringify(snap.scores || {}));
+  deepScores = JSON.parse(JSON.stringify(snap.deepScores || {}));
   careerScores = JSON.parse(JSON.stringify(snap.careerScores || {}));
   answers = JSON.parse(JSON.stringify(snap.answers || []));
   qSequence = (snap.qSequenceIds || []).map(function(id) {
@@ -7993,7 +8741,7 @@ var DIR_SECTION_META = {
   cs: '偏系统、编译、数据库、安全与云平台，强调可扩展性、性能和工程稳定性。',
   ee: '偏芯片、信号、通信、控制与电子系统，核心是现实约束下的精密实现。',
   ce: '偏体系结构、FPGA、软硬协同与接口层设计，适合喜欢跨层优化的人。',
-  ds: '偏统计推断、因果、时间序列、实验设计与数据流水线，强调可验证的结论。',
+  ds: '偏统计判断、预测建模、实验评估、数据工程与行业分析，核心是把复杂数据变成可靠结论与可执行决策。',
   rb: '偏感知、SLAM、规划、控制与机器人学习，强调系统闭环与真实世界交互。',
   or: '偏优化、博弈、随机过程与科学计算，适合抽象建模能力强的人。'
 };
